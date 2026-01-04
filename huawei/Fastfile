@@ -51,6 +51,7 @@ platform :huawei do
 
   before_all do
     skip_docs
+    update_fastlane
     # Detect project root from CI or local path
     @project_root = ENV["GITHUB_WORKSPACE"] ||        # GitHub Actions
                     ENV["CI_PROJECT_DIR"] ||          # GitLab

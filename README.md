@@ -99,3 +99,8 @@ HUAWEI_CLIENT_SECRET=
 
 - `fastlane dev`: Deploy to Test/Beta tracks (TestFlight, Play Store Beta).
 - `fastlane prod`: Deploy to Production tracks.
+
+## Update Strategy 🔄
+
+1. **Shared Config**: Since we use `import_from_git`, your project always uses the latest logic from this repo automatically.
+2. **Fastlane Tool**: `update_fastlane` is called in `before_all`, so fastlane and its plugins are automatically updated every time you run a lane.
