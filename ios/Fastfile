@@ -111,8 +111,11 @@ platform :ios do
     metadata_path = get_metadata_path('IOS', @project_root)
     metadata_exists = Dir.exist?(metadata_path)
     
+    app_identifier = env_with_flavor("IOS_BUNDLE_ID")
+    
     if production
       upload_to_app_store(
+        app_identifier: app_identifier,
         ipa: ipa_file,
         metadata_path: metadata_path,
         skip_metadata: !metadata_exists,
@@ -123,6 +126,7 @@ platform :ios do
       )
     else
       upload_to_testflight(
+        app_identifier: app_identifier,
         ipa: ipa_file,
         skip_waiting_for_build_processing: true
       )

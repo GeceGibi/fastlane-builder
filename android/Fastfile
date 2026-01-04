@@ -108,7 +108,8 @@ platform :android do
       release_status: "completed"
     }
 
-    params[:package_name] = package_name if package_name
+    UI.user_error!("❌ ANDROID_PACKAGE_NAME is missing!") unless package_name && !package_name.empty?
+    params[:package_name] = package_name
     
     if json_key_data && !json_key_data.empty?
       params[:json_key_data] = json_key_data

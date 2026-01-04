@@ -41,12 +41,12 @@ import_from_git(
 )
 ```
 
-> **Note:** Since `Appfile` configurations are project-specific and cannot be remotely imported by Fastlane, you should keep a local copy of `Appfile` in your project folders.
+
 
 ## Migration Guide 🛠️
 
 1. **Fastfile Config**: Add the `import_from_git` blocks as shown above.
-2. **Appfile Check**: Ensure your local `Appfile`s have the correct package names and credentials.
+2. **Optional Appfile**: You can delete local `Appfile`s as all params are now read from ENV variables.
 3. **Environment Variables**: Define necessary ENV variables in your CI/CD pipeline or local `.env`.
 4. **Verification**: Run `fastlane dev` to verify the remote configuration is fetched and working correctly.
 
