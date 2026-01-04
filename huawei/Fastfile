@@ -1,16 +1,49 @@
 require 'fileutils'
 
-# Shared Huawei Fastlane Configuration
-# Usage: fastlane huawei dev/prod
-
 # Shared helper methods (Standalone)
-def env_with_flavor(key)
+def log_info(message)
+  UI.message("📝 #{message}")
+end
+
+def dump_context
+  UI.message("----------------------------------------------------")
+  UI.message("🛠️  Huawei Build Context Dump")
+  UI.message("----------------------------------------------------")
+  
+  keys = [
+    'FLAVOR',
+    'HUAWEI_APP_ID',
+    'HUAWEI_CLIENT_ID',
+    'HUAWEI_CLIENT_SECRET',
+    'HUAWEI_METADATA_PATH'
+  ]
+  
   flavor = ENV['FLAVOR']
   if flavor && !flavor.empty?
-    flavor_key = "#{flavor.upcase}_#{key}"
-    return ENV[flavor_key] if ENV[flavor_key] && !ENV[flavor_key].empty?
+    keys += keys.map { |k| "#{flavor.upcase}_#{k}" }
   end
-  ENV[key]
+
+  keys.uniq.each do |key|
+    value = ENV[key]
+    if value && !value.empty?
+      masked = (key.include?('SECRET') || key.include?('ID')) && value.length > 5 ? "#{value[0..2]}...#{value[-3..-1]}" : value
+      UI.message("   🔹 #{key}: #{masked}")
+    else
+      # UI.message("   🔸 #{key}: [nil/empty]")
+    end
+  end
+  UI.message("----------------------------------------------------")
+end
+
+def env_with_flavor(key)
+  flavor = ENV['FLAVOR']
+  value = nil
+  if flavor && !flavor.empty?
+    flavor_key = "#{flavor.upcase}_#{key}"
+    value = ENV[flavor_key] if ENV[flavor_key] && !ENV[flavor_key].empty?
+  end
+  value = ENV[key] if value.nil?
+  value
 end
 
 def find_project_root
@@ -23,9 +56,12 @@ def find_project_root
 end
 
 def find_latest_aab(project_root)
+  log_info("Searching for AAB in: #{project_root}/build/app/outputs/bundle")
   aab_pattern = File.join(project_root, "build/app/outputs/bundle/**/*.aab")
   aab_files = Dir.glob(aab_pattern)
-  return aab_files.max_by { |f| File.mtime(f) }
+  latest = aab_files.max_by { |f| File.mtime(f) }
+  log_info("Found AAB: #{latest}") if latest
+  latest
 end
 
 def get_metadata_path(platform_prefix, project_root)
@@ -33,17 +69,21 @@ def get_metadata_path(platform_prefix, project_root)
   relative_path = env_with_flavor("#{platform_prefix}_METADATA_PATH") || default_subpath
   full_path = File.expand_path(relative_path, project_root)
   nested_path = File.join(full_path, platform_prefix.downcase)
-  return nested_path if Dir.exist?(nested_path)
-  full_path
+  
+  final_path = Dir.exist?(nested_path) ? nested_path : full_path
+  log_info("Metadata Path resolved to: #{final_path}")
+  final_path
 end
 
 def ensure_metadata_dirs(platform_prefix, project_root)
+  log_info("Checking metadata directories...")
   metadata_path = get_metadata_path(platform_prefix, project_root)
   ['en-US', 'tr-TR'].each do |locale|
     dir = File.join(metadata_path, locale)
     FileUtils.mkdir_p(dir)
     file = File.join(dir, "changelog.txt")
     unless File.exist?(file)
+      log_info("Creating default changelog for #{locale}")
       content = locale.start_with?('tr') ? "- Hata düzeltmeleri ve performans iyileştirmeleri." : "- Bug fixes and performance improvements."
       File.write(file, content)
     end
@@ -57,6 +97,8 @@ platform :huawei do
   before_all do
     skip_docs
     update_fastlane
+    dump_context
+
     # Detect project root from CI or local path
     @project_root = ENV["GITHUB_WORKSPACE"] ||        # GitHub Actions
                     ENV["CI_PROJECT_DIR"] ||          # GitLab
@@ -64,6 +106,7 @@ platform :huawei do
                     find_project_root
     
     UI.user_error!("❌ Could not find Flutter project root!") unless @project_root
+    log_info("Project Root: #{@project_root}")
 
     # Ensure metadata structure exists
     ensure_metadata_dirs("ANDROID", @project_root)
@@ -71,11 +114,13 @@ platform :huawei do
 
   desc "Deploy to Huawei AppGallery Production"
   lane :prod do
+    log_info("Starting PROD deployment (Review)...")
     deploy(submit_for_review: true)
   end
 
   desc "Upload to Huawei AppGallery Draft"
   lane :dev do
+    log_info("Starting DEV deployment (Draft)...")
     deploy(submit_for_review: false)
   end
 
@@ -89,10 +134,17 @@ platform :huawei do
       UI.user_error!("❌ AAB file not found! Run 'flutter build appbundle' first.")
     end
 
+    client_id = env_with_flavor("HUAWEI_CLIENT_ID")
+    app_id = env_with_flavor("HUAWEI_APP_ID")
+    
+    log_info("Auth Info:")
+    log_info("   ClientID: #{client_id}")
+    log_info("   AppID:    #{app_id}")
+
     huawei_appgallery_connect(
-      client_id: env_with_flavor("HUAWEI_CLIENT_ID"),
+      client_id: client_id,
       client_secret: env_with_flavor("HUAWEI_CLIENT_SECRET"),
-      app_id: env_with_flavor("HUAWEI_APP_ID"),
+      app_id: app_id,
       apk: aab_file,
       submit_for_review: submit_for_review
     )

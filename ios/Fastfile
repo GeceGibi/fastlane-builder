@@ -1,13 +1,36 @@
 require 'fileutils'
 
 # Shared helper methods (Standalone)
+def log_info(message)
+  UI.message("📝 #{message}")
+end
+
 def env_with_flavor(key)
   flavor = ENV['FLAVOR']
+  value = nil
+  log_source = "DEFAULT"
+
   if flavor && !flavor.empty?
     flavor_key = "#{flavor.upcase}_#{key}"
-    return ENV[flavor_key] if ENV[flavor_key] && !ENV[flavor_key].empty?
+    if ENV[flavor_key] && !ENV[flavor_key].empty?
+      value = ENV[flavor_key]
+      log_source = "FLAVOR (#{flavor_key})"
+    end
   end
-  ENV[key]
+
+  if value.nil?
+    value = ENV[key] 
+    log_source = "ENV (#{key})"
+  end
+
+  if value.nil? || value.empty?
+    # UI.message("   ⚠️  [#{key}] not found")
+  else
+    masked_value = value.length > 20 ? "#{value[0..4]}...#{value[-4..-1]}" : value
+    # UI.message("   🔹 [#{key}] loaded from #{log_source}: #{masked_value}")
+  end
+  
+  value
 end
 
 def find_project_root
@@ -20,9 +43,12 @@ def find_project_root
 end
 
 def find_latest_ipa(project_root)
+  log_info("Searching for IPA in: #{project_root}/build/ios/ipa")
   ipa_pattern = File.join(project_root, "build/ios/ipa/**/*.ipa")
   ipa_files = Dir.glob(ipa_pattern)
-  return ipa_files.max_by { |f| File.mtime(f) }
+  latest = ipa_files.max_by { |f| File.mtime(f) }
+  log_info("Found IPA: #{latest}") if latest
+  latest
 end
 
 def get_metadata_path(platform_prefix, project_root)
@@ -30,17 +56,21 @@ def get_metadata_path(platform_prefix, project_root)
   relative_path = env_with_flavor("#{platform_prefix}_METADATA_PATH") || default_subpath
   full_path = File.expand_path(relative_path, project_root)
   nested_path = File.join(full_path, platform_prefix.downcase)
-  return nested_path if Dir.exist?(nested_path)
-  full_path
+  
+  final_path = Dir.exist?(nested_path) ? nested_path : full_path
+  log_info("Metadata Path resolved to: #{final_path}")
+  final_path
 end
 
 def ensure_metadata_dirs(platform_prefix, project_root)
+  log_info("Checking metadata directories...")
   metadata_path = get_metadata_path(platform_prefix, project_root)
   ['en-US', 'tr-TR'].each do |locale|
     dir = File.join(metadata_path, locale)
     FileUtils.mkdir_p(dir)
     file = File.join(dir, "release_notes.txt")
     unless File.exist?(file)
+      log_info("Creating default release notes for #{locale}")
       content = locale.start_with?('tr') ? "- Hata düzeltmeleri ve performans iyileştirmeleri." : "- Bug fixes and performance improvements."
       File.write(file, content)
     end
@@ -54,6 +84,7 @@ platform :ios do
   before_all do
     skip_docs
     update_fastlane
+    
     # Detect project root from CI or local path
     @project_root = ENV["GITHUB_WORKSPACE"] ||        # GitHub Actions
                     ENV["CI_PROJECT_DIR"] ||          # GitLab
@@ -61,6 +92,7 @@ platform :ios do
                     find_project_root
     
     UI.user_error!("❌ Could not find Flutter project root!") unless @project_root
+    log_info("Project Root: #{@project_root}")
 
     # Ensure metadata structure exists
     ensure_metadata_dirs("IOS", @project_root)
@@ -68,11 +100,13 @@ platform :ios do
 
   desc "Deploy to TestFlight"
   lane :dev do
+    log_info("Starting DEV deployment (TestFlight)...")
     deploy(production: false)
   end
 
   desc "Deploy to App Store"
   lane :prod do
+    log_info("Starting PROD deployment (App Store)...")
     deploy(production: true)
   end
 
@@ -87,33 +121,46 @@ platform :ios do
     end
 
     # Authenticate with App Store Connect
-    # Supports either key file path or raw key content
+    log_info("Configuring authentication...")
     key_path = env_with_flavor('IOS_AUTH_KEY_PATH')
     key_content = env_with_flavor('IOS_AUTH_KEY_CONTENT')
 
     if key_content && !key_content.empty?
+      log_info("Using raw key content from ENV")
       key_path = File.join(@project_root, "ios/fastlane/auth_key.p8")
       File.write(key_path, key_content)
+    elsif key_path
+       log_info("Using key file at: #{key_path}")
     end
 
+    api_key_id = env_with_flavor("IOS_AUTH_KEY_ID")
+    issuer_id = env_with_flavor("IOS_ISSUER_ID")
+    
+    UI.message("   🔑 Key ID: #{api_key_id}")
+    UI.message("   🏛️  Issuer ID: #{issuer_id}")
+
     app_store_connect_api_key(
-      key_id: env_with_flavor("IOS_AUTH_KEY_ID"),
-      issuer_id: env_with_flavor("IOS_ISSUER_ID"),
+      key_id: api_key_id,
+      issuer_id: issuer_id,
       key_filepath: key_path,
     )
 
-    # Configure transporter path if specifically enabled
+    # Configure transporter path if specified
     if env_with_flavor('IOS_USE_TRANSPORTER') == 'true'
+      log_info("Enabling ITMSTRANSPORTER...")
       ENV["FASTLANE_ITUNES_TRANSPORTER_USE_SHELL_SCRIPT"] = "1"
       ENV["FASTLANE_ITUNES_TRANSPORTER_PATH"] = env_with_flavor('IOS_TRANSPORTER_PATH') || "/Applications/Transporter.app/Contents/itms"
     end
 
     metadata_path = get_metadata_path('IOS', @project_root)
     metadata_exists = Dir.exist?(metadata_path)
+    log_info("Metadata exists: #{metadata_exists}")
     
     app_identifier = env_with_flavor("IOS_BUNDLE_ID")
-    
+    log_info("App Identifier: #{app_identifier}")
+
     if production
+      log_info("Uploading to App Store...")
       upload_to_app_store(
         app_identifier: app_identifier,
         ipa: ipa_file,
@@ -125,6 +172,7 @@ platform :ios do
         force: true
       )
     else
+      log_info("Uploading to TestFlight...")
       upload_to_testflight(
         app_identifier: app_identifier,
         ipa: ipa_file,
@@ -133,14 +181,19 @@ platform :ios do
     end
 
     # Optional: Crashlytics dSYM upload
-    if env_with_flavor('IOS_GOOGLE_SERVICE_PLIST_PATH')
+    gsp_path = env_with_flavor('IOS_GOOGLE_SERVICE_PLIST_PATH')
+    if gsp_path
+      log_info("Crashlytics configuration found. Processing dSYMs...")
       begin
         dSYMsPath = File.join(@project_root, "build/ios/archive/Runner.xcarchive/dSYMs")
         if File.exist?(dSYMsPath)
+          log_info("Uploading dSYMs from: #{dSYMsPath}")
           upload_symbols_to_crashlytics(
             dsym_paths: Dir.children(dSYMsPath).map { |e| File.join(dSYMsPath, e) },
-            gsp_path: env_with_flavor('IOS_GOOGLE_SERVICE_PLIST_PATH'),
+            gsp_path: gsp_path,
           )
+        else
+          log_info("dSYMs not found at expected path.")
         end
       rescue => e
         UI.error("Crashlytics upload failed: #{e.message}")
