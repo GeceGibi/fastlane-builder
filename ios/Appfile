@@ -1,8 +1,14 @@
 # Shared iOS configuration
 # IOS_BUNDLE_ID: Complete app identifier from ENV
 
-helpers_path = File.join(File.dirname(File.realpath(__FILE__)), "../shared/helpers.rb")
-require helpers_path
+def env_with_flavor(key)
+  flavor = ENV['FLAVOR']
+  if flavor && !flavor.empty?
+    flavor_key = "#{flavor.upcase}_#{key}"
+    return ENV[flavor_key] if ENV[flavor_key] && !ENV[flavor_key].empty?
+  end
+  ENV[key]
+end
 
 bundle_id = env_with_flavor('IOS_BUNDLE_ID')
 UI.user_error!("❌ IOS_BUNDLE_ID is required!") unless bundle_id
