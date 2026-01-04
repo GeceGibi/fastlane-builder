@@ -1,0 +1,52 @@
+# Shared Android Fastlane Configuration
+# Usage: fastlane android dev/prod project_root:/path/to/flutter/project
+
+default_platform(:android)
+
+def find_latest_aab
+  aab_pattern = File.join(@project_root, "build/app/outputs/bundle/**/*.aab")
+  aab_files = Dir.glob(aab_pattern)
+  return aab_files.max_by { |f| File.mtime(f) }
+end
+
+platform :android do
+
+  before_all do |lane, options|
+    skip_docs
+
+    # Priority: 1) lane option 2) ENV 3) CI workspace 4) auto-detect
+    @project_root = options[:project_root] || 
+                    ENV["PROJECT_ROOT"] || 
+                    ENV["GITHUB_WORKSPACE"] ||        # GitHub Actions
+                    ENV["CI_PROJECT_DIR"] ||          # GitLab
+                    ENV["BUILD_SOURCESDIRECTORY"] ||  # Azure DevOps
+                    File.expand_path("../..", __dir__)
+  end
+
+  desc "Upload to Play Store Production"
+  lane :prod do
+    deploy(track: "production")
+  end
+
+  desc "Upload to Play Store Beta"
+  lane :dev do
+    deploy(track: "beta")
+  end
+
+  desc "Upload to Play Store"
+  lane :deploy do |options|
+    track = options[:track] || "beta"
+
+    aab_file = find_latest_aab
+    unless aab_file && File.exist?(aab_file)
+      UI.user_error!("❌ AAB file not found! Run build first.")
+    end
+    
+    upload_to_play_store(
+      aab: aab_file,
+      track: track,
+      skip_upload_metadata: true,
+      release_status: "completed"
+    )
+  end
+end

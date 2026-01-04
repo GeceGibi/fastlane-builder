@@ -1,0 +1,11 @@
+# Shared Android Appfile
+# ANDROID_PACKAGE_NAME: Required - complete package name from CI/CD
+
+package = ENV['ANDROID_PACKAGE_NAME']
+UI.user_error!("❌ ANDROID_PACKAGE_NAME is required!") unless package
+
+package_name(package)
+
+# Google Play Console Service Account Key
+json_key_file(ENV['ANDROID_SERVICE_ACCOUNT_PATH'])
+

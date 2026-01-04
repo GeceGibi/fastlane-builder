@@ -1,0 +1,105 @@
+# Shared iOS Fastlane Configuration
+# Usage: fastlane ios dev/prod project_root:/path/to/flutter/project
+
+default_platform(:ios)
+
+
+
+def get_changelog
+  changelog_file = "metadata/changelog.txt"
+
+  if File.exist?(changelog_file) && !File.read(changelog_file).strip.empty?
+    return File.read(changelog_file).strip
+  else
+    return "- Performance improvements."
+  end
+end
+
+def find_latest_ipa
+  ipa_pattern = File.join(@project_root, "build/ios/ipa/**/*.ipa")
+  ipa_files = Dir.glob(ipa_pattern)
+  return ipa_files.max_by { |f| File.mtime(f) }
+end
+
+platform :ios do
+
+  before_all do |lane, options|
+    skip_docs
+
+    # Priority: 1) lane option 2) ENV 3) CI workspace 4) auto-detect
+    @project_root = options[:project_root] || 
+                    ENV["PROJECT_ROOT"] || 
+                    ENV["GITHUB_WORKSPACE"] ||        # GitHub Actions
+                    ENV["CI_PROJECT_DIR"] ||          # GitLab
+                    ENV["BUILD_SOURCESDIRECTORY"] ||  # Azure DevOps
+                    File.expand_path("../..", __dir__)
+  end
+
+  desc "Upload to TestFlight"
+  lane :dev do
+    
+    ipa_file = find_latest_ipa
+    unless ipa_file && File.exist?(ipa_file)
+      UI.user_error!("❌ IPA file not found! Run build first.")
+    end
+
+    app_store_connect_api_key(
+      key_id: ENV["IOS_AUTH_KEY_ID"],
+      issuer_id: ENV["IOS_ISSUER_ID"],
+      key_filepath: ENV['IOS_AUTH_KEY_PATH'],
+    )
+
+    # Transporter - default enabled, set IOS_USE_TRANSPORTER=false to disable
+    if ENV['IOS_USE_TRANSPORTER'] != 'false'
+      ENV["FASTLANE_ITUNES_TRANSPORTER_USE_SHELL_SCRIPT"] = "1"
+      ENV["FASTLANE_ITUNES_TRANSPORTER_PATH"] = ENV['IOS_TRANSPORTER_PATH'] || "/Applications/Transporter.app/Contents/itms"
+    end
+
+    upload_to_testflight(
+      ipa: ipa_file,
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc "Upload to App Store"
+  lane :prod do
+
+    ipa_file = find_latest_ipa
+
+    unless ipa_file && File.exist?(ipa_file)
+      UI.user_error!("❌ IPA file not found! Run build first.")
+    end
+
+    app_store_connect_api_key(
+      key_id: ENV["IOS_AUTH_KEY_ID"],
+      issuer_id: ENV["IOS_ISSUER_ID"],
+      key_filepath: ENV['IOS_AUTH_KEY_PATH'],
+    )
+    
+    upload_to_app_store(
+      ipa: ipa_file,
+      release_notes: {
+        'tr' => get_changelog,
+      },
+      skip_metadata: false,
+      skip_screenshots: true,
+      automatic_release: true,
+      submit_for_review: true,
+      precheck_include_in_app_purchases: false,
+      force: true
+    )
+   
+    # Crashlytics dSYM upload (optional)
+    if ENV['IOS_GOOGLE_SERVICE_PLIST_PATH']
+      begin
+        dSYMsPath = File.join(@project_root, "build/ios/archive/Runner.xcarchive/dSYMs")
+        upload_symbols_to_crashlytics(
+          dsym_paths: Dir.children(dSYMsPath).map { |e| File.join(dSYMsPath, e) },
+          gsp_path: ENV['IOS_GOOGLE_SERVICE_PLIST_PATH'],
+        )
+      rescue => e
+        UI.error("Crashlytics upload failed: #{e.message}")
+      end
+    end
+  end
+end
