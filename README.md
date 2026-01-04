@@ -1,10 +1,9 @@
 # Fastlane Builder 🚀
 
-Centralized, standalone, and portable Fastlane configuration for Flutter projects. Optimized for remote usage via `import_from_git`.
+Centralized, standalone, and portable Fastlane configuration for Flutter projects. Optimized for usage via **Git Submodule**.
 
 ## Features
-- **Standalone**: All helper methods are embedded within each file. No external dependencies.
-- **Remote-First**: Designed to be imported directly from this repository.
+- **Modular**: Common logic centralized in `shared/helpers.rb`, reducing duplication across flavors.
 - **Dynamic Root Detection**: Automatically identifies Flutter project root via `pubspec.yaml`.
 - **Flavor Support**: Dynamic environment variable lookup based on `FLAVOR` (e.g., `PROD_IOS_BUNDLE_ID` vs `IOS_BUNDLE_ID`).
 - **Metadata Automation**: Automatically ensures standard Fastlane metadata structure exists for all platforms.
@@ -46,9 +45,6 @@ This is the most robust method as it ensures all shared helpers and files are ph
     import "../../fastlane-builder/huawei/Fastfile"
     ```
 
-### Option 2: `import_from_git` (Not Recommended for this setup)
-Since this repo uses shared helper files, `import_from_git` may fail to correctly resolve relative paths to `shared/helpers.rb`. Use the Submodule method above.
-
 ## ⚙️ CI/CD Configuration
 
 When using submodules, you **must** configure your pipeline to checkout submodules recursively.
@@ -72,9 +68,10 @@ steps:
 
 ## Migration Guide 🛠️
 
-1. **Fastfile Config**: Add the `import_from_git` blocks as shown above.
-2. **Optional Appfile**: You can delete local `Appfile`s as all params are now read from ENV variables.
-3. **Environment Variables**: Define necessary ENV variables in your CI/CD pipeline or local `.env`.
+1. **Fastfile Config**: Follow the "Usage > Git Submodule" instructions to setup the bridge Fastfiles.
+2. **Appfile**: If you have `Appfile`s, delete them. All configuration is now ENV-based.
+3. **Environment**: Ensure your `.env` or CI variables match the ones listed below.
+4. **Metadata**: The build process will now auto-generate metadata folders based on `SUPPORTED_LOCALES`.
 4. **Verification**: Run `fastlane dev` to verify the remote configuration is fetched and working correctly.
 
 ## Environment Variables
