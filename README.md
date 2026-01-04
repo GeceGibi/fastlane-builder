@@ -10,38 +10,65 @@ Centralized, standalone, and portable Fastlane configuration for Flutter project
 - **Metadata Automation**: Automatically ensures standard Fastlane metadata structure exists for all platforms.
 - **Auto-Update**: Automatically checks for Fastlane and plugin updates on every run.
 
-## Setup (Remote Import)
+## 🚀 Usage
 
-You don't need to add this repo as a submodule or create symlinks. Simply add the following blocks to your local `Fastfile`s.
+### Option 1: Git Submodule (Recommended)
+This is the most robust method as it ensures all shared helpers and files are physically present.
 
-### 1. iOS Setup
-Add to `ios/fastlane/Fastfile`:
-```ruby
-import_from_git(
-  url: 'https://github.com/GeceGibi/fastlane-builder.git',
-  path: 'ios/Fastfile'
-)
+1.  **Add Submodule:**
+    Run this in your project root:
+    ```bash
+    git submodule add https://github.com/GeceGibi/fastlane-builder.git fastlane-builder
+    ```
+
+2.  **Initialize Submodule (For CI or New Clones):**
+    Ensure this runs after cloning your repo:
+    ```bash
+    git submodule update --init --recursive
+    ```
+
+3.  **Bridge Configuration (No Symlinks):**
+    Instead of symlinks (which can fail on some systems), create a "Bridge" `Fastfile` in your project that simply imports the submodule's Fastfile.
+
+    **iOS (`ios/fastlane/Fastfile`):**
+    ```ruby
+    # Import the real Fastfile from submodule
+    import "../../fastlane-builder/ios/Fastfile"
+    ```
+
+    **Android (`android/fastlane/Fastfile`):**
+    ```ruby
+    import "../../fastlane-builder/android/Fastfile"
+    ```
+
+    **Huawei (`android/fastlane/Fastfile` - if separate dir):**
+    ```ruby
+    import "../../fastlane-builder/huawei/Fastfile"
+    ```
+
+### Option 2: `import_from_git` (Not Recommended for this setup)
+Since this repo uses shared helper files, `import_from_git` may fail to correctly resolve relative paths to `shared/helpers.rb`. Use the Submodule method above.
+
+## ⚙️ CI/CD Configuration
+
+When using submodules, you **must** configure your pipeline to checkout submodules recursively.
+
+### Azure DevOps (`azure-pipelines.yml`)
+```yaml
+steps:
+- checkout: self
+  submodules: true  # Critical!
+  persistCredentials: true
 ```
 
-### 2. Android Setup
-Add to `android/fastlane/Fastfile`:
-```ruby
-import_from_git(
-  url: 'https://github.com/GeceGibi/fastlane-builder.git',
-  path: 'android/Fastfile'
-)
+### GitHub Actions (`.github/workflows/deploy.yml`)
+```yaml
+steps:
+  - uses: actions/checkout@v4
+    with:
+      submodules: recursive # Critical!
+      fetch-depth: 0
 ```
-
-### 3. Huawei Setup
-Add to `huawei/fastlane/Fastfile`:
-```ruby
-import_from_git(
-  url: 'https://github.com/GeceGibi/fastlane-builder.git',
-  path: 'huawei/Fastfile'
-)
-```
-
-
 
 ## Migration Guide 🛠️
 
