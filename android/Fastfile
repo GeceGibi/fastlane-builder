@@ -40,11 +40,14 @@ platform :android do
       UI.user_error!("❌ AAB file not found! Run 'flutter build appbundle' first.")
     end
     
+    metadata_path = get_metadata_path('ANDROID', @project_root)
+    metadata_exists = Dir.exist?(metadata_path)
+
     upload_to_play_store(
       aab: aab_file,
       track: track,
-      metadata_path: env_with_flavor('ANDROID_METADATA_PATH') || "metadata",
-      skip_upload_metadata: true,
+      metadata_path: metadata_path,
+      skip_upload_metadata: !metadata_exists,
       release_status: "completed"
     )
   end

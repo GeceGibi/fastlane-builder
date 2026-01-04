@@ -36,9 +36,16 @@ def find_latest_ipa(project_root)
   return ipa_files.max_by { |f| File.mtime(f) }
 end
 
+# Resolves the absolute path for metadata directory
+def get_metadata_path(platform_prefix, project_root)
+  default_subpath = platform_prefix.downcase == 'android' ? "android/fastlane/metadata" : "ios/fastlane/metadata"
+  relative_path = env_with_flavor("#{platform_prefix}_METADATA_PATH") || default_subpath
+  File.expand_path(relative_path, project_root)
+end
+
 # Retrieves release notes text from a file or uses default
-def get_changelog(platform_prefix)
-  metadata_path = env_with_flavor("#{platform_prefix}_METADATA_PATH") || "metadata"
+def get_changelog(platform_prefix, project_root)
+  metadata_path = get_metadata_path(platform_prefix, project_root)
   changelog_file = File.join(metadata_path, "changelog.txt")
 
   if File.exist?(changelog_file) && !File.read(changelog_file).strip.empty?

@@ -62,11 +62,15 @@ platform :ios do
       ENV["FASTLANE_ITUNES_TRANSPORTER_PATH"] = env_with_flavor('IOS_TRANSPORTER_PATH') || "/Applications/Transporter.app/Contents/itms"
     end
 
+    metadata_path = get_metadata_path('IOS', @project_root)
+    metadata_exists = Dir.exist?(metadata_path)
+    
     if production
       upload_to_app_store(
         ipa: ipa_file,
-        release_notes: { 'tr' => get_changelog("IOS") },
-        skip_metadata: false,
+        metadata_path: metadata_path,
+        release_notes: { 'tr' => get_changelog("IOS", @project_root) },
+        skip_metadata: !metadata_exists,
         skip_screenshots: true,
         automatic_release: true,
         submit_for_review: true,

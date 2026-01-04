@@ -26,18 +26,3 @@ To-do for each project:
 
 ### 5. Verification
 - [ ] Verify build/deploy scripts work for each active platform
-
----
-
-## Projects
-
-### com.secil.mobile ✅
-- [x] Submodule + Symlink
-- [x] Pipeline updated
-- [x] Tested (by user)
-
-### [Project 2]
-- [ ] Submodule + Symlink
-- [ ] Hardcoded values
-- [ ] CI/CD update
-- [ ] Verification
