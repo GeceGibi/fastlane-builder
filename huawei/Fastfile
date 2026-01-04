@@ -1,7 +1,9 @@
 # Shared Huawei Fastlane Configuration
 # Usage: fastlane huawei dev/prod
 
-require_relative '../shared/helpers'
+# helpers_path resolves the symlink to the actual submodule directory
+helpers_path = File.join(File.dirname(File.realpath(__FILE__)), "../shared/helpers.rb")
+require helpers_path
 
 default_platform(:android)
 
