@@ -2,8 +2,11 @@
 # ANDROID_PACKAGE_NAME: Complete package name from ENV
 # ANDROID_SERVICE_ACCOUNT_PATH: Path to Google Play service account JSON
 
-package = ENV['ANDROID_PACKAGE_NAME']
+helpers_path = File.join(File.dirname(File.realpath(__FILE__)), "../shared/helpers.rb")
+require helpers_path
+
+package = env_with_flavor('ANDROID_PACKAGE_NAME')
 UI.user_error!("❌ ANDROID_PACKAGE_NAME is required!") unless package
 
 package_name(package)
-json_key_file(ENV['ANDROID_SERVICE_ACCOUNT_PATH'])
+json_key_file(env_with_flavor('ANDROID_SERVICE_ACCOUNT_PATH'))

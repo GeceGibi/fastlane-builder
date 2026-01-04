@@ -40,7 +40,14 @@ end
 def get_metadata_path(platform_prefix, project_root)
   default_subpath = platform_prefix.downcase == 'android' ? "android/fastlane/metadata" : "ios/fastlane/metadata"
   relative_path = env_with_flavor("#{platform_prefix}_METADATA_PATH") || default_subpath
-  File.expand_path(relative_path, project_root)
+  full_path = File.expand_path(relative_path, project_root)
+
+  # Detect redundant platform folder (e.g., metadata/android/tr-TR)
+  # This prevents supply from treating 'android' as a language code
+  nested_path = File.join(full_path, platform_prefix.downcase)
+  return nested_path if Dir.exist?(nested_path)
+
+  full_path
 end
 
 # Retrieves release notes text from a file or uses default
