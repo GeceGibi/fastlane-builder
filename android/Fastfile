@@ -64,12 +64,24 @@ platform :android do
       UI.user_error!("❌ AAB file not found! Run build first.")
     end
     
-    upload_to_play_store(
+    json_key_data = env_with_flavor('ANDROID_SERVICE_ACCOUNT_JSON')
+    json_key_path = env_with_flavor('ANDROID_SERVICE_ACCOUNT_PATH')
+
+    params = {
       aab: aab_file,
       track: track,
       metadata_path: env_with_flavor('ANDROID_METADATA_PATH') || "metadata",
       skip_upload_metadata: true,
       release_status: "completed"
-    )
+    }
+
+    if json_key_data && !json_key_data.empty?
+      params[:json_key_data] = json_key_data
+    elsif json_key_path && File.exist?(json_key_path)
+      # json_key_file is already set in Appfile, but we can be explicit here too
+      params[:json_key] = json_key_path
+    end
+
+    upload_to_play_store(params)
   end
 end

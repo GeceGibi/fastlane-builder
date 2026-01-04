@@ -64,11 +64,25 @@ platform :ios do
       UI.user_error!("❌ IPA file not found! Run build first.")
     end
 
-    app_store_connect_api_key(
-      key_id: env_with_flavor("IOS_AUTH_KEY_ID"),
-      issuer_id: env_with_flavor("IOS_ISSUER_ID"),
-      key_filepath: env_with_flavor('IOS_AUTH_KEY_PATH'),
-    )
+    key_path = env_with_flavor('IOS_AUTH_KEY_PATH')
+    key_content = env_with_flavor('IOS_AUTH_KEY_CONTENT')
+
+    if key_path && File.exist?(key_path)
+      app_store_connect_api_key(
+        key_id: env_with_flavor("IOS_AUTH_KEY_ID"),
+        issuer_id: env_with_flavor("IOS_ISSUER_ID"),
+        key_filepath: key_path,
+      )
+    elsif key_content && !key_content.empty?
+      app_store_connect_api_key(
+        key_id: env_with_flavor("IOS_AUTH_KEY_ID"),
+        issuer_id: env_with_flavor("IOS_ISSUER_ID"),
+        key_content: key_content,
+        is_key_content_base64: true,
+      )
+    else
+      UI.user_error!("❌ Neither IOS_AUTH_KEY_PATH nor IOS_AUTH_KEY_CONTENT found!")
+    end
 
     # Transporter - default enabled, set IOS_USE_TRANSPORTER=false to disable
     if env_with_flavor('IOS_USE_TRANSPORTER') != 'false'
@@ -91,11 +105,25 @@ platform :ios do
       UI.user_error!("❌ IPA file not found! Run build first.")
     end
 
-    app_store_connect_api_key(
-      key_id: env_with_flavor("IOS_AUTH_KEY_ID"),
-      issuer_id: env_with_flavor("IOS_ISSUER_ID"),
-      key_filepath: env_with_flavor('IOS_AUTH_KEY_PATH'),
-    )
+    key_path = env_with_flavor('IOS_AUTH_KEY_PATH')
+    key_content = env_with_flavor('IOS_AUTH_KEY_CONTENT')
+
+    if key_path && File.exist?(key_path)
+      app_store_connect_api_key(
+        key_id: env_with_flavor("IOS_AUTH_KEY_ID"),
+        issuer_id: env_with_flavor("IOS_ISSUER_ID"),
+        key_filepath: key_path,
+      )
+    elsif key_content && !key_content.empty?
+      app_store_connect_api_key(
+        key_id: env_with_flavor("IOS_AUTH_KEY_ID"),
+        issuer_id: env_with_flavor("IOS_ISSUER_ID"),
+        key_content: key_content,
+        is_key_content_base64: true,
+      )
+    else
+      UI.user_error!("❌ Neither IOS_AUTH_KEY_PATH nor IOS_AUTH_KEY_CONTENT found!")
+    end
     
     upload_to_app_store(
       ipa: ipa_file,

@@ -36,11 +36,11 @@ Her proje için yapılacaklar:
 - [x] Pipeline güncellendi  
 - [x] Test edildi (kullanıcı tarafından)
 
-### [Proje 2]
-- [ ] Submodule + Symlink
-- [ ] Hardcoded değerler
-- [ ] CI/CD güncelleme
-- [ ] Kontrol
+### net.memurlar ✅
+- [x] Submodule + Symlink
+- [x] Hardcoded değerler (ENV'ye taşındı)
+- [x] CI/CD güncelleme (`submodules: true` + ENV mappings)
+- [ ] Kontrol (Pipeline tetiklenmeli)
 
 ### [Proje 3]
 - [ ] Submodule + Symlink
