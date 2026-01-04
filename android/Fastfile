@@ -1,59 +1,5 @@
-require 'fileutils'
-
-# Shared helper methods (Standalone)
-def log_info(message)
-  UI.message("📝 #{message}")
-end
-
-def dump_context
-  UI.message("----------------------------------------------------")
-  UI.message("🛠️  Android Build Context Dump")
-  UI.message("----------------------------------------------------")
-  
-  keys = [
-    'FLAVOR',
-    'ANDROID_PACKAGE_NAME',
-    'ANDROID_SERVICE_ACCOUNT_JSON',
-    'ANDROID_SERVICE_ACCOUNT_PATH',
-    'ANDROID_METADATA_PATH'
-  ]
-  
-  flavor = ENV['FLAVOR']
-  if flavor && !flavor.empty?
-    keys += keys.map { |k| "#{flavor.upcase}_#{k}" }
-  end
-
-  keys.uniq.each do |key|
-    value = ENV[key]
-    if value && !value.empty?
-      masked = (key.include?('JSON') || key.include?('KEY')) && value.length > 20 ? "#{value[0..4]}...#{value[-4..-1]}" : value
-      UI.message("   🔹 #{key}: #{masked}")
-    else
-      # UI.message("   🔸 #{key}: [nil/empty]")
-    end
-  end
-  UI.message("----------------------------------------------------")
-end
-
-def env_with_flavor(key)
-  flavor = ENV['FLAVOR']
-  value = nil
-  if flavor && !flavor.empty?
-    flavor_key = "#{flavor.upcase}_#{key}"
-    value = ENV[flavor_key] if ENV[flavor_key] && !ENV[flavor_key].empty?
-  end
-  value = ENV[key] if value.nil?
-  value
-end
-
-def find_project_root
-  dir = Dir.pwd
-  while dir != '/'
-    return dir if File.exist?(File.join(dir, 'pubspec.yaml'))
-    dir = File.dirname(dir)
-  end
-  nil
-end
+# Import shared helpers via absolute path to avoid symlink/CWD issues
+import(File.expand_path("../../shared/helpers.rb", __FILE__))
 
 def find_latest_aab(project_root)
   log_info("Searching for AAB in: #{project_root}/build/app/outputs/bundle")
@@ -64,50 +10,6 @@ def find_latest_aab(project_root)
   latest
 end
 
-def get_metadata_path(platform_prefix, project_root)
-  default_subpath = platform_prefix.downcase == 'android' ? "android/fastlane/metadata" : "ios/fastlane/metadata"
-  relative_path = env_with_flavor("#{platform_prefix}_METADATA_PATH") || default_subpath
-  full_path = File.expand_path(relative_path, project_root)
-  nested_path = File.join(full_path, platform_prefix.downcase)
-  
-  final_path = Dir.exist?(nested_path) ? nested_path : full_path
-  log_info("Metadata Path resolved to: #{final_path}")
-  final_path
-end
-
-def ensure_metadata_dirs(platform_prefix, project_root)
-  log_info("Checking metadata directories...")
-  metadata_path = get_metadata_path(platform_prefix, project_root)
-  
-  locales_env = env_with_flavor("SUPPORTED_LOCALES") || "tr-TR"
-  locales = locales_env.split(',').map(&:strip)
-  
-  log_info("Supported locales: #{locales}")
-
-  # 1. Create missing directories
-  locales.each do |locale|
-    dir = File.join(metadata_path, locale, "changelogs")
-    FileUtils.mkdir_p(dir)
-    file = File.join(dir, "default.txt")
-    unless File.exist?(file)
-      log_info("Creating default changelog for #{locale}")
-      content = locale.start_with?('tr') ? "- Hata düzeltmeleri ve performans iyileştirmeleri." : "- Bug fixes and performance improvements."
-      File.write(file, content)
-    end
-  end
-
-  # 2. Cleanup unsupported directories
-  if Dir.exist?(metadata_path)
-    existing_dirs = Dir.children(metadata_path).select { |d| File.directory?(File.join(metadata_path, d)) }
-    to_remove = existing_dirs - locales
-    to_remove.each do |dir_name|
-      full_path = File.join(metadata_path, dir_name)
-      log_info("Removing unsupported locale directory: #{dir_name}")
-      FileUtils.rm_rf(full_path)
-    end
-  end
-end
-
 default_platform(:android)
 
 platform :android do
@@ -115,7 +17,12 @@ platform :android do
   before_all do
     skip_docs
     update_fastlane
-    dump_context
+    
+    dump_context('Android', [
+      'ANDROID_PACKAGE_NAME',
+      'ANDROID_SERVICE_ACCOUNT_JSON',
+      'ANDROID_SERVICE_ACCOUNT_PATH'
+    ])
 
     # Detect project root from CI or local path
     @project_root = ENV["GITHUB_WORKSPACE"] ||        # GitHub Actions
