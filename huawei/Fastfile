@@ -1,3 +1,5 @@
+require 'fileutils'
+
 # Shared Huawei Fastlane Configuration
 # Usage: fastlane huawei dev/prod
 
@@ -35,13 +37,16 @@ def get_metadata_path(platform_prefix, project_root)
   full_path
 end
 
-def get_changelog(platform_prefix, project_root)
+def ensure_metadata_dirs(platform_prefix, project_root)
   metadata_path = get_metadata_path(platform_prefix, project_root)
-  changelog_file = File.join(metadata_path, "changelog.txt")
-  if File.exist?(changelog_file) && !File.read(changelog_file).strip.empty?
-    return File.read(changelog_file).strip
-  else
-    return "- Performance improvements and bug fixes."
+  ['en-US', 'tr-TR'].each do |locale|
+    dir = File.join(metadata_path, locale)
+    FileUtils.mkdir_p(dir)
+    file = File.join(dir, "changelog.txt")
+    unless File.exist?(file)
+      content = locale.start_with?('tr') ? "- Hata düzeltmeleri ve performans iyileştirmeleri." : "- Bug fixes and performance improvements."
+      File.write(file, content)
+    end
   end
 end
 
@@ -59,6 +64,9 @@ platform :huawei do
                     find_project_root
     
     UI.user_error!("❌ Could not find Flutter project root!") unless @project_root
+
+    # Ensure metadata structure exists
+    ensure_metadata_dirs("ANDROID", @project_root)
   end
 
   desc "Deploy to Huawei AppGallery Production"

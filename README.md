@@ -7,6 +7,8 @@ Centralized, standalone, and portable Fastlane configuration for Flutter project
 - **Remote-First**: Designed to be imported directly from this repository.
 - **Dynamic Root Detection**: Automatically identifies Flutter project root via `pubspec.yaml`.
 - **Flavor Support**: Dynamic environment variable lookup based on `FLAVOR` (e.g., `PROD_IOS_BUNDLE_ID` vs `IOS_BUNDLE_ID`).
+- **Metadata Automation**: Automatically ensures standard Fastlane metadata structure exists for all platforms.
+- **Auto-Update**: Automatically checks for Fastlane and plugin updates on every run.
 
 ## Setup (Remote Import)
 
@@ -70,37 +72,37 @@ The system automatically performs a prefix lookup based on the `FLAVOR` variable
 |----------|----------|-------------|
 | `ANDROID_PACKAGE_NAME` | ✅ | App Package Name |
 | `ANDROID_SERVICE_ACCOUNT_JSON` | ✅ | Raw Service Account JSON content |
+| `ANDROID_METADATA_PATH` | ❌ | Custom metadata path (Default: `android/fastlane/metadata`) |
 
-## .env Template
+### Huawei
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `HUAWEI_APP_ID` | ✅ | Huawei App ID |
+| `HUAWEI_CLIENT_ID` | ✅ | Huawei Client ID |
+| `HUAWEI_CLIENT_SECRET` | ✅ | Huawei Client Secret |
 
-Copy this into your project's `.env` file:
 
-```env
-# Common
-FLAVOR=
+## Metadata Structure 📂
 
-# iOS
-IOS_BUNDLE_ID=
-IOS_AUTH_KEY_ID=
-IOS_ISSUER_ID=
-IOS_AUTH_KEY_CONTENT=
+The system automatically ensures the following structure exists and loads it during deploy:
 
-# Android
-ANDROID_PACKAGE_NAME=
-ANDROID_SERVICE_ACCOUNT_JSON=
+### iOS
+- Path: `ios/fastlane/metadata/<locale>/release_notes.txt`
 
-# Huawei
-HUAWEI_APP_ID=
-HUAWEI_CLIENT_ID=
-HUAWEI_CLIENT_SECRET=
-```
+### Android
+- Path: `android/fastlane/metadata/android/<locale>/changelogs/default.txt`
+
+### Huawei
+- Path: `android/fastlane/metadata/huawei/<locale>/changelog.txt`
+
+> **Automatic Creation:** Directories and default `changelog/release_notes` files are created automatically in `before_all`.
 
 ## Lanes
 
-- `fastlane dev`: Deploy to Test/Beta tracks (TestFlight, Play Store Beta).
+- `fastlane dev`: Deploy to Test/Beta tracks (TestFlight, Play Store Beta, Huawei AppGallery Draft).
 - `fastlane prod`: Deploy to Production tracks.
 
 ## Update Strategy 🔄
 
 1. **Shared Config**: Since we use `import_from_git`, your project always uses the latest logic from this repo automatically.
-2. **Fastlane Tool**: `update_fastlane` is called in `before_all`, so fastlane and its plugins are automatically updated every time you run a lane.
+2. **Fastlane & Plugins**: `update_fastlane` is called in `before_all`, maintaining everything up-to-date automatically on every run.
