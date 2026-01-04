@@ -1,7 +1,19 @@
 # Shared Android Fastlane Configuration
-# Usage: fastlane android dev/prod project_root:/path/to/flutter/project
+# Usage: fastlane android dev/prod
 
 default_platform(:android)
+
+# Flavor-aware ENV lookup
+# Checks {FLAVOR}_KEY first, falls back to KEY
+# Example: FLAVOR=secil → checks SECIL_ANDROID_PACKAGE_NAME, then ANDROID_PACKAGE_NAME
+def env_with_flavor(key)
+  flavor = ENV['FLAVOR']
+  if flavor && !flavor.empty?
+    flavor_key = "#{flavor.upcase}_#{key}"
+    return ENV[flavor_key] if ENV[flavor_key] && !ENV[flavor_key].empty?
+  end
+  ENV[key]
+end
 
 def find_latest_aab
   aab_pattern = File.join(@project_root, "build/app/outputs/bundle/**/*.aab")
