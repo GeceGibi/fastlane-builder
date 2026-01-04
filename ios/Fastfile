@@ -102,8 +102,8 @@ platform :ios do
       key_filepath: key_path,
     )
 
-    # Configure transporter path if specified
-    if env_with_flavor('IOS_USE_TRANSPORTER') != 'false'
+    # Configure transporter path if specifically enabled
+    if env_with_flavor('IOS_USE_TRANSPORTER') == 'true'
       ENV["FASTLANE_ITUNES_TRANSPORTER_USE_SHELL_SCRIPT"] = "1"
       ENV["FASTLANE_ITUNES_TRANSPORTER_PATH"] = env_with_flavor('IOS_TRANSPORTER_PATH') || "/Applications/Transporter.app/Contents/itms"
     end
