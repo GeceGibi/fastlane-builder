@@ -1,35 +1,9 @@
 # Shared Android Fastlane Configuration
 # Usage: fastlane android dev/prod
 
+require_relative '../shared/helpers'
+
 default_platform(:android)
-
-# Fetches ENV variable with flavor prefix support
-# Example: FLAVOR=prod -> checks PROD_ANDROID_PACKAGE_NAME, then ANDROID_PACKAGE_NAME
-def env_with_flavor(key)
-  flavor = ENV['FLAVOR']
-  if flavor && !flavor.empty?
-    flavor_key = "#{flavor.upcase}_#{key}"
-    return ENV[flavor_key] if ENV[flavor_key] && !ENV[flavor_key].empty?
-  end
-  ENV[key]
-end
-
-# Locates the most recently modified AAB file in the build directory
-def find_latest_aab
-  aab_pattern = File.join(@project_root, "build/app/outputs/bundle/**/*.aab")
-  aab_files = Dir.glob(aab_pattern)
-  return aab_files.max_by { |f| File.mtime(f) }
-end
-
-# Recursively searches up for pubspec.yaml to identify Flutter root
-def find_project_root
-  dir = Dir.pwd
-  while dir != '/'
-    return dir if File.exist?(File.join(dir, 'pubspec.yaml'))
-    dir = File.dirname(dir)
-  end
-  nil
-end
 
 platform :android do
 
@@ -59,7 +33,7 @@ platform :android do
   lane :deploy do |options|
     track = options[:track] || "beta"
 
-    aab_file = find_latest_aab
+    aab_file = find_latest_aab(@project_root)
     unless aab_file && File.exist?(aab_file)
       UI.user_error!("❌ AAB file not found! Run 'flutter build appbundle' first.")
     end

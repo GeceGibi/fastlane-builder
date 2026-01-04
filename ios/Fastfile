@@ -1,47 +1,9 @@
 # Shared iOS Fastlane Configuration
 # Usage: fastlane ios dev/prod
 
+require_relative '../shared/helpers'
+
 default_platform(:ios)
-
-# Fetches ENV variable with flavor prefix support
-# Example: FLAVOR=prod -> checks PROD_IOS_BUNDLE_ID, then IOS_BUNDLE_ID
-def env_with_flavor(key)
-  flavor = ENV['FLAVOR']
-  if flavor && !flavor.empty?
-    flavor_key = "#{flavor.upcase}_#{key}"
-    return ENV[flavor_key] if ENV[flavor_key] && !ENV[flavor_key].empty?
-  end
-  ENV[key]
-end
-
-# Retrieves release notes text from a file or uses default
-def get_changelog
-  metadata_path = env_with_flavor('IOS_METADATA_PATH') || "metadata"
-  changelog_file = File.join(metadata_path, "changelog.txt")
-
-  if File.exist?(changelog_file) && !File.read(changelog_file).strip.empty?
-    return File.read(changelog_file).strip
-  else
-    return "- Performance improvements and bug fixes."
-  end
-end
-
-# Locates the most recently modified IPA file in the build directory
-def find_latest_ipa
-  ipa_pattern = File.join(@project_root, "build/ios/ipa/**/*.ipa")
-  ipa_files = Dir.glob(ipa_pattern)
-  return ipa_files.max_by { |f| File.mtime(f) }
-end
-
-# Recursively searches up for pubspec.yaml to identify Flutter root
-def find_project_root
-  dir = Dir.pwd
-  while dir != '/'
-    return dir if File.exist?(File.join(dir, 'pubspec.yaml'))
-    dir = File.dirname(dir)
-  end
-  nil
-end
 
 platform :ios do
 
@@ -71,7 +33,7 @@ platform :ios do
   lane :deploy do |options|
     production = options[:production] || false
     
-    ipa_file = find_latest_ipa
+    ipa_file = find_latest_ipa(@project_root)
     unless ipa_file && File.exist?(ipa_file)
       UI.user_error!("❌ IPA file not found! Run 'flutter build ipa' first.")
     end
@@ -101,7 +63,7 @@ platform :ios do
     if production
       upload_to_app_store(
         ipa: ipa_file,
-        release_notes: { 'en-US' => get_changelog },
+        release_notes: { 'tr' => get_changelog("IOS") },
         skip_metadata: false,
         skip_screenshots: true,
         automatic_release: true,
