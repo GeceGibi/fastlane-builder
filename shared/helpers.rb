@@ -105,7 +105,8 @@ def dump_context(platform_name, specific_keys = [])
   
   keys = [
     'FLAVOR',
-    'SUPPORTED_LOCALES'
+    'SUPPORTED_LOCALES',
+    'AUTO_GENERATE_CHANGELOG'
   ] + specific_keys
   
   flavor = ENV['FLAVOR']
@@ -160,4 +161,46 @@ def dump_context(platform_name, specific_keys = [])
     end
   end
   UI.message("----------------------------------------------------")
+end
+
+def update_changelog_from_git(platform_prefix, project_root)
+  if env_with_flavor('AUTO_GENERATE_CHANGELOG') != 'true'
+    log_info("Skipping automatic changelog generation (AUTO_GENERATE_CHANGELOG is not 'true').")
+    return
+  end
+
+  log_info("Updating changelog from Git history (Last 10 commits)...")
+  
+  # Get last 10 commits: "- Commit message (Author)"
+  changelog_text = `git log -10 --pretty=format:"- %s (%an)"`
+  
+  if changelog_text.empty?
+    log_info("⚠️ No git commits found to generate changelog.")
+    return
+  end
+  
+  metadata_path = get_metadata_path(platform_prefix, project_root)
+  
+  locales_env = env_with_flavor("SUPPORTED_LOCALES") || "tr-TR"
+  locales = locales_env.split(',').map(&:strip)
+  
+  locales.each do |locale|
+    file_path = nil
+    if platform_prefix.upcase == 'IOS'
+      file_path = File.join(metadata_path, locale, "release_notes.txt")
+    elsif platform_prefix.upcase == 'ANDROID'
+      file_path = File.join(metadata_path, locale, "changelogs", "default.txt")
+    elsif platform_prefix.upcase == 'HUAWEI'
+      file_path = File.join(metadata_path, locale, "changelog.txt")
+    end
+    
+    if file_path && File.exist?(file_path)
+      # Append timestamp header
+      header = "Build Logs (#{Time.now.strftime('%Y-%m-%d %H:%M')}):"
+      new_content = "#{header}\n#{changelog_text}"
+      
+      File.write(file_path, new_content)
+      log_info("Updated #{locale} changelog: \n#{new_content}")
+    end
+  end
 end

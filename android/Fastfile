@@ -46,6 +46,7 @@ platform :android do
   desc "Deploy to Play Store Beta"
   lane :dev do
     log_info("Starting DEV deployment (Beta)...")
+    update_changelog_from_git("ANDROID", @project_root)
     deploy(track: "beta")
   end
 

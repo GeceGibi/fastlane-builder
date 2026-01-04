@@ -88,6 +88,7 @@ The system automatically performs a prefix lookup based on the `FLAVOR` variable
 |----------|----------|-------------|
 | `FLAVOR` | ❌ | App flavor (e.g., dev, prod) |
 | `SUPPORTED_LOCALES` | ❌ | Comma separated locales (Default: `tr-TR`) |
+| `AUTO_GENERATE_CHANGELOG` | ❌ | Set 'true' to enable git commit logs in beta (Default: `false`) |
 
 ### iOS
 | Variable | Required | Description |

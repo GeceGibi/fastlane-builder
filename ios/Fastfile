@@ -44,6 +44,7 @@ platform :ios do
   desc "Deploy to TestFlight"
   lane :dev do
     log_info("Starting DEV deployment (TestFlight)...")
+    update_changelog_from_git("IOS", @project_root)
     deploy(production: false)
   end
 

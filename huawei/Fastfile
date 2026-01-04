@@ -48,6 +48,7 @@ platform :huawei do
   desc "Upload to Huawei AppGallery Draft"
   lane :dev do
     log_info("Starting DEV deployment (Draft)...")
+    update_changelog_from_git("HUAWEI", @project_root)
     deploy(submit_for_review: false)
   end
 
