@@ -78,7 +78,14 @@ end
 def ensure_metadata_dirs(platform_prefix, project_root)
   log_info("Checking metadata directories...")
   metadata_path = get_metadata_path(platform_prefix, project_root)
-  ['en-US', 'tr-TR'].each do |locale|
+  
+  locales_env = env_with_flavor("SUPPORTED_LOCALES") || "tr-TR"
+  locales = locales_env.split(',').map(&:strip)
+  
+  log_info("Supported locales: #{locales}")
+
+  # 1. Create missing directories
+  locales.each do |locale|
     dir = File.join(metadata_path, locale, "changelogs")
     FileUtils.mkdir_p(dir)
     file = File.join(dir, "default.txt")
@@ -86,6 +93,17 @@ def ensure_metadata_dirs(platform_prefix, project_root)
       log_info("Creating default changelog for #{locale}")
       content = locale.start_with?('tr') ? "- Hata düzeltmeleri ve performans iyileştirmeleri." : "- Bug fixes and performance improvements."
       File.write(file, content)
+    end
+  end
+
+  # 2. Cleanup unsupported directories
+  if Dir.exist?(metadata_path)
+    existing_dirs = Dir.children(metadata_path).select { |d| File.directory?(File.join(metadata_path, d)) }
+    to_remove = existing_dirs - locales
+    to_remove.each do |dir_name|
+      full_path = File.join(metadata_path, dir_name)
+      log_info("Removing unsupported locale directory: #{dir_name}")
+      FileUtils.rm_rf(full_path)
     end
   end
 end

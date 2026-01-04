@@ -57,7 +57,10 @@ The system automatically performs a prefix lookup based on the `FLAVOR` variable
 ### Common
 | Variable | Required | Description |
 |----------|----------|-------------|
+| Variable | Required | Description |
+|----------|----------|-------------|
 | `FLAVOR` | ❌ | App flavor (e.g., dev, prod) |
+| `SUPPORTED_LOCALES` | ❌ | Comma separated locales (Default: `tr-TR`) |
 
 ### iOS
 | Variable | Required | Description |
