@@ -21,18 +21,28 @@ def find_latest_aab
   return aab_files.max_by { |f| File.mtime(f) }
 end
 
+# Find Flutter project root by walking up and looking for pubspec.yaml
+def find_project_root
+  dir = Dir.pwd
+  while dir != '/'
+    return dir if File.exist?(File.join(dir, 'pubspec.yaml'))
+    dir = File.dirname(dir)
+  end
+  nil
+end
+
 platform :android do
 
   before_all do |lane, options|
     skip_docs
 
-    # Priority: 1) lane option 2) ENV 3) CI workspace 4) auto-detect
-    @project_root = options[:project_root] || 
-                    ENV["PROJECT_ROOT"] || 
-                    ENV["GITHUB_WORKSPACE"] ||        # GitHub Actions
+    # Priority: 1) CI workspace 2) find pubspec.yaml
+    @project_root = ENV["GITHUB_WORKSPACE"] ||        # GitHub Actions
                     ENV["CI_PROJECT_DIR"] ||          # GitLab
                     ENV["BUILD_SOURCESDIRECTORY"] ||  # Azure DevOps
-                    File.expand_path("../..", __dir__)
+                    find_project_root
+    
+    UI.user_error!("❌ Could not find Flutter project root!") unless @project_root
   end
 
   desc "Upload to Play Store Production"
@@ -57,6 +67,7 @@ platform :android do
     upload_to_play_store(
       aab: aab_file,
       track: track,
+      metadata_path: env_with_flavor('ANDROID_METADATA_PATH') || "metadata",
       skip_upload_metadata: true,
       release_status: "completed"
     )

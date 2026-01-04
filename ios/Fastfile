@@ -14,8 +14,10 @@ def env_with_flavor(key)
   end
   ENV[key]
 end
+
 def get_changelog
-  changelog_file = "metadata/changelog.txt"
+  metadata_path = env_with_flavor('IOS_METADATA_PATH') || "metadata"
+  changelog_file = File.join(metadata_path, "changelog.txt")
 
   if File.exist?(changelog_file) && !File.read(changelog_file).strip.empty?
     return File.read(changelog_file).strip
@@ -30,18 +32,28 @@ def find_latest_ipa
   return ipa_files.max_by { |f| File.mtime(f) }
 end
 
+# Find Flutter project root by walking up and looking for pubspec.yaml
+def find_project_root
+  dir = Dir.pwd
+  while dir != '/'
+    return dir if File.exist?(File.join(dir, 'pubspec.yaml'))
+    dir = File.dirname(dir)
+  end
+  nil
+end
+
 platform :ios do
 
   before_all do |lane, options|
     skip_docs
 
-    # Priority: 1) lane option 2) ENV 3) CI workspace 4) auto-detect
-    @project_root = options[:project_root] || 
-                    ENV["PROJECT_ROOT"] || 
-                    ENV["GITHUB_WORKSPACE"] ||        # GitHub Actions
+    # Priority: 1) CI workspace 2) find pubspec.yaml
+    @project_root = ENV["GITHUB_WORKSPACE"] ||        # GitHub Actions
                     ENV["CI_PROJECT_DIR"] ||          # GitLab
                     ENV["BUILD_SOURCESDIRECTORY"] ||  # Azure DevOps
-                    File.expand_path("../..", __dir__)
+                    find_project_root
+    
+    UI.user_error!("❌ Could not find Flutter project root!") unless @project_root
   end
 
   desc "Upload to TestFlight"

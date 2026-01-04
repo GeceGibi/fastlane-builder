@@ -4,79 +4,92 @@ Shared Fastlane configuration for multiple Flutter mobile projects.
 
 ## Setup
 
-### 1. Add as Git Submodule (Recommended)
+### 1. Add as Git Submodule
 
 ```bash
 # In your Flutter project root
-git submodule add https://github.com/YOUR_ORG/fastlane-builder.git
+git submodule add https://github.com/GeceGibi/fastlane-builder.git
 
-# Link fastlane directories
-ln -s ../fastlane-builder/ios/Fastfile ios/fastlane/Fastfile
-ln -s ../fastlane-builder/ios/Appfile ios/fastlane/Appfile
-ln -s ../fastlane-builder/android/Fastfile android/fastlane/Fastfile
-ln -s ../fastlane-builder/android/Appfile android/fastlane/Appfile
+# Create symlinks
+ln -s ../../fastlane-builder/ios/Fastfile ios/fastlane/Fastfile
+ln -s ../../fastlane-builder/ios/Appfile ios/fastlane/Appfile
+ln -s ../../fastlane-builder/android/Fastfile android/fastlane/Fastfile
+ln -s ../../fastlane-builder/android/Appfile android/fastlane/Appfile
 ```
 
-### 2. Copy .env.template
+### 2. CI/CD'de Submodule Checkout
 
-```bash
-cp fastlane-builder/.env.template .env
-# Edit .env with your project-specific values
+```yaml
+# Azure DevOps
+- checkout: self
+  submodules: true
+
+# GitHub Actions
+- uses: actions/checkout@v4
+  with:
+    submodules: true
 ```
 
 ## Usage
 
-### iOS
-
 ```bash
-cd ios
-bundle install
-bundle exec fastlane ios dev project_root:$(pwd)/..
-bundle exec fastlane ios prod project_root:$(pwd)/..
-```
+# iOS
+cd ios && fastlane dev --verbose
+cd ios && fastlane prod --verbose
 
-### Android
-
-```bash
-cd android
-bundle install
-bundle exec fastlane android dev project_root:$(pwd)/..
-bundle exec fastlane android prod project_root:$(pwd)/..
+# Android
+cd android && fastlane dev --verbose
+cd android && fastlane prod --verbose
 ```
 
 ## Environment Variables
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `FLAVOR` | App flavor/brand identifier | `secil` |
-| `PROJECT_ROOT` | Absolute path to Flutter project | `/Users/dev/myapp` |
-| `TEMP_ROOT` | Path to credentials folder | `/tmp/credentials` |
-| `AUTH_KEY_ID` | App Store Connect API Key ID | `ABC123` |
-| `ISSUER_ID` | App Store Connect Issuer ID | `xyz-456` |
+### Flavor Prefix Support
 
-## CI/CD Integration
+Tüm ENV değişkenleri flavor prefix destekler:
+- `FLAVOR=secil` ise → önce `SECIL_IOS_BUNDLE_ID`, yoksa `IOS_BUNDLE_ID` kullanır
 
-### GitHub Actions Example
+### iOS Variables
 
-```yaml
-- name: Clone fastlane-builder
-  run: git submodule update --init --recursive
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `IOS_BUNDLE_ID` | ✅ | App bundle identifier |
+| `IOS_AUTH_KEY_ID` | ✅ | App Store Connect API Key ID |
+| `IOS_ISSUER_ID` | ✅ | App Store Connect Issuer ID |
+| `IOS_AUTH_KEY_PATH` | ✅ | Path to .p8 auth key file |
+| `IOS_METADATA_PATH` | ❌ | Metadata folder path (default: `metadata`) |
+| `IOS_GOOGLE_SERVICE_PLIST_PATH` | ❌ | GoogleService-Info.plist for Crashlytics |
+| `IOS_USE_TRANSPORTER` | ❌ | Enable Transporter (default: `true`) |
+| `IOS_TRANSPORTER_PATH` | ❌ | Transporter path (default: `/Applications/Transporter.app/Contents/itms`) |
 
-- name: iOS Deploy
-  run: |
-    cd ios
-    bundle install
-    bundle exec fastlane ios prod project_root:${{ github.workspace }}
-  env:
-    FLAVOR: ${{ secrets.APP_FLAVOR }}
-    AUTH_KEY_ID: ${{ secrets.AUTH_KEY_ID }}
-    ISSUER_ID: ${{ secrets.ISSUER_ID }}
-```
+### Android Variables
 
-## Updating
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `ANDROID_PACKAGE_NAME` | ✅ | App package name |
+| `ANDROID_SERVICE_ACCOUNT_PATH` | ✅ | Path to service_account.json |
+| `ANDROID_METADATA_PATH` | ❌ | Metadata folder path (default: `metadata`) |
+
+### Common Variables
+
+| Variable | Description |
+|----------|-------------|
+| `FLAVOR` | App flavor (enables prefix lookup) |
+
+## Lanes
+
+### iOS
+- `dev` → Upload to TestFlight
+- `prod` → Upload to App Store (with review submission)
+
+### Android
+- `dev` → Upload to Play Store Beta track
+- `prod` → Upload to Play Store Production track
+
+## Updating Submodule
 
 ```bash
 git submodule update --remote fastlane-builder
 git add fastlane-builder
-git commit -m "Update fastlane-builder"
+git commit -m "chore: update fastlane-builder"
 ```
