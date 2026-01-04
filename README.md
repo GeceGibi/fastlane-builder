@@ -47,7 +47,7 @@ cd android && fastlane prod --verbose
 ### Flavor Prefix Support
 
 Tüm ENV değişkenleri flavor prefix destekler:
-- `FLAVOR=secil` ise → önce `SECIL_IOS_BUNDLE_ID`, yoksa `IOS_BUNDLE_ID` kullanır
+- Önce `{FLAVOR}_IOS_*` kontrol edilir, yoksa `IOS_*` kullanılır
 
 ### iOS Variables
 
