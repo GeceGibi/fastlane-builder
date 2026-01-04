@@ -1,80 +1,68 @@
-# Fastlane Builder
+# Fastlane Builder 🚀
 
-Shared Fastlane configuration for multiple Flutter mobile projects. Optimized for CI/CD with flavor support.
+Flutter projeleriniz için merkezi ve taşınabilir Fastlane konfigürasyonu. Tüm dosyalar **standalone** yapıdadır ve doğrudan uzak repo üzerinden kullanılmak üzere optimize edilmiştir.
 
-## Setup
+## Kurulum (Remote Import)
 
-### 1. Add as Git Submodule and Link
+Bu repoyu projelerinize submodule olarak eklemenize veya symlink oluşturmanıza gerek yoktur. Projenizdeki `Fastfile` dosyalarına ilgili bloğu eklemeniz yeterlidir.
 
-Run this from your Flutter project root:
+### 1. iOS Kurulum
+`ios/fastlane/Fastfile` dosyanızın en başına ekleyin:
 
-```bash
-# Add the submodule
-git submodule add https://github.com/GeceGibi/fastlane-builder.git
-
-# Run the setup script to automatically link active platforms
-./fastlane-builder/setup.sh
+```ruby
+import_from_git(
+  url: 'https://github.com/GeceGibi/fastlane-builder.git',
+  path: 'ios/Fastfile'
+)
 ```
 
-### 2. CI/CD Configuration
+### 2. Android Kurulum
+`android/fastlane/Fastfile` dosyanızın en başına ekleyin:
 
-```yaml
-# Azure DevOps
-- checkout: self
-  submodules: true
-
-# GitHub Actions
-- uses: actions/checkout@v4
-  with:
-    submodules: true
+```ruby
+import_from_git(
+  url: 'https://github.com/GeceGibi/fastlane-builder.git',
+  path: 'android/Fastfile'
+)
 ```
 
-## Environment Variables
+### 3. Huawei Kurulum
+`huawei/fastlane/Fastfile` dosyanızın en başına ekleyin:
 
-### Flavor Prefix Support
+```ruby
+import_from_git(
+  url: 'https://github.com/GeceGibi/fastlane-builder.git',
+  path: 'huawei/Fastfile'
+)
+```
 
-Variables support automatic flavor lookup:
-- If `FLAVOR=prod`, it checks `PROD_IOS_BUNDLE_ID` first.
-- Fallback is `IOS_BUNDLE_ID`.
+> **Not:** `Appfile` merkezi olarak yönetilemediği için projenizin içinde (ios/android/huawei klasörlerinde) ilgili `Appfile` dosyasının bir kopyası bulunmalıdır.
 
-### iOS Variables
+## Değişkenler (Environment Variables)
 
-| Variable | Required | Description |
+Sistem, `FLAVOR` değişkenine göre otomatik prefix lookup yapar (örn: `PROD_IOS_BUNDLE_ID`).
+
+### Ortak Ayarlar
+| Değişken | Açıklama |
+|----------|----------|
+| `FLAVOR` | Uygulama flavor'ı (örn: dev, prod) |
+
+### iOS
+| Değişken | Zorunlu | Açıklama |
 |----------|----------|-------------|
-| `IOS_BUNDLE_ID` | ✅ | App bundle identifier |
-| `IOS_AUTH_KEY_ID` | ✅ | App Store Connect API Key ID |
-| `IOS_ISSUER_ID` | ✅ | App Store Connect Issuer ID |
-| `IOS_AUTH_KEY_CONTENT` | ❌ | Raw content of .p8 auth key file (Preferred for CI) |
-| `IOS_AUTH_KEY_PATH` | ❌ | Path to .p8 auth key file (Fallback) |
-| `IOS_METADATA_PATH` | ❌ | Metadata path. Auto-detects `{path}/{platform}` subfolders. |
-| `IOS_GOOGLE_SERVICE_PLIST_PATH`| ❌ | GoogleService-Info.plist for Crashlytics dSYM upload |
+| `IOS_BUNDLE_ID` | ✅ | Uygulama Bundle ID |
+| `IOS_AUTH_KEY_ID` | ✅ | ASC API Key ID |
+| `IOS_ISSUER_ID` | ✅ | ASC Issuer ID |
+| `IOS_AUTH_KEY_CONTENT`| ❌ | .p8 dosya içeriği |
 
-### Android Variables
-
-| Variable | Required | Description |
+### Android
+| Değişken | Zorunlu | Açıklama |
 |----------|----------|-------------|
-| `ANDROID_PACKAGE_NAME` | ✅ | App package name |
-| `ANDROID_SERVICE_ACCOUNT_JSON` | ❌ | Raw Service Account JSON content (Preferred for CI) |
-| `ANDROID_SERVICE_ACCOUNT_PATH` | ❌ | Path to service_account.json (Fallback) |
-| `ANDROID_METADATA_PATH` | ❌ | Metadata path. Auto-detects `{path}/{platform}` subfolders. |
-
-### Huawei Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `HUAWEI_CLIENT_ID` | ✅ | Client ID from Huawei Connect |
-| `HUAWEI_CLIENT_SECRET` | ✅ | Client Secret from Huawei Connect |
-| `HUAWEI_APP_ID` | ✅ | App ID from Huawei Connect |
+| `ANDROID_PACKAGE_NAME` | ✅ | Uygulama Paket Adı |
+| `ANDROID_SERVICE_ACCOUNT_JSON`| ✅ | Service Account JSON içeriği |
 
 ## Lanes
 
-- `dev` → Upload to Test/Beta track (TestFlight / Play Store Beta / AppGallery Draft)
-- `prod` → Upload to Production track
+- `fastlane dev`: Test/Beta track yüklemesi.
+- `fastlane prod`: Production track yüklemesi.
 
-## Updating
-
-```bash
-git submodule update --remote fastlane-builder
-git add fastlane-builder
-git commit -m "chore: update fastlane-builder"
-```

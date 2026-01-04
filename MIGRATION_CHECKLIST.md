@@ -1,28 +1,20 @@
-# Fastlane Builder Migration Checklist
+# Fastlane Builder Geçiş Listesi 🚀
 
-To-do for each project:
+## 1. Fastfile Konfigürasyonu
+- [ ] Projenizdeki `ios/fastlane/Fastfile` ve `android/fastlane/Fastfile` dosyalarının en başına `import_from_git` bloğunu ekleyin.
 
-## My Tasks
+## 2. Appfile Kontrolü
+- [ ] Projenizin içindeki `Appfile` dosyalarının package_name/bundle_id değerlerini kontrol edin (veya bu repo üzerindekileri örnek alarak güncelleyin).
 
-### 1. Submodule and Symlink Setup
-- [ ] `git submodule add https://github.com/GeceGibi/fastlane-builder.git`
-- [ ] Run `./fastlane-builder/setup.sh` (This script automatically detects existing platforms in your project and only creates links for them)
+## 3. Ortam Değişkenleri (Pipeline)
+- [ ] Pipeline üzerinde gerekli ENV değişkenlerini tanımlayın:
+  - **Dinamik Prefix**: `DEV_`, `PROD_` gibi prefixleri `FLAVOR` değişkenine göre kullanabilirsiniz.
+  - **iOS**: `IOS_BUNDLE_ID`, `IOS_AUTH_KEY_ID`, `IOS_ISSUER_ID`, `IOS_AUTH_KEY_CONTENT`
+  - **Android**: `ANDROID_PACKAGE_NAME`, `ANDROID_SERVICE_ACCOUNT_JSON`
 
-### 2. Find Hardcoded Values
-- [ ] Inspect existing Fastfiles in `ios/` and `android/`.
-- [ ] Note Bundle ID, package name, and credential paths
+## 4. Test
+- [ ] `fastlane dev` komutu ile remote konfigürasyonun başarıyla çekildiğini ve çalıştığını doğrulayın.
 
-### 3. Pipeline Setup
-- [ ] Add `submodules: true` to the pipeline file
-- [ ] Add ENV variables to the pipeline:
-  - **iOS**: `IOS_BUNDLE_ID`, `IOS_AUTH_KEY_ID`, `IOS_ISSUER_ID`, `IOS_AUTH_KEY_PATH`
-  - **Android**: `ANDROID_PACKAGE_NAME`, `ANDROID_SERVICE_ACCOUNT_PATH`
-  - **Huawei**: `HUAWEI_APP_ID`, `HUAWEI_CLIENT_ID`, `HUAWEI_CLIENT_SECRET`
-  - **Common**: `FLAVOR`
-
-### 4. Local Setup (If CI/CD Does Not Exist)
-- [ ] Create `.env` file (ensure it's in gitignore)
-- [ ] Add required values to `.env`
-
-### 5. Verification
-- [ ] Verify build/deploy scripts work for each active platform
+## 4. Yerel Test
+- [ ] `.env` dosyası oluştur (gitignore'da olduğundan emin ol).
+- [ ] `fastlane dev` veya `fastlane prod` ile testi tamamla.
