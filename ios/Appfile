@@ -1,8 +1,7 @@
-# Shared iOS Appfile
-# IOS_BUNDLE_ID: Required - complete app identifier from CI/CD
+# Shared iOS configuration
+# IOS_BUNDLE_ID: Complete app identifier from ENV
 
 bundle_id = ENV['IOS_BUNDLE_ID']
 UI.user_error!("❌ IOS_BUNDLE_ID is required!") unless bundle_id
 
 app_identifier(bundle_id)
-

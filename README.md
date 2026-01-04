@@ -56,11 +56,20 @@ All ENV variables support flavor prefixes:
 | `IOS_BUNDLE_ID` | ✅ | App bundle identifier |
 | `IOS_AUTH_KEY_ID` | ✅ | App Store Connect API Key ID |
 | `IOS_ISSUER_ID` | ✅ | App Store Connect Issuer ID |
-| `IOS_AUTH_KEY_PATH` | ✅ | Path to .p8 auth key file |
+| `IOS_AUTH_KEY_PATH` | ❌ | Path to .p8 auth key file (if content not provided) |
+| `IOS_AUTH_KEY_CONTENT` | ❌ | Raw content of .p8 auth key file |
 | `IOS_METADATA_PATH` | ❌ | Metadata folder path (default: `metadata`) |
 | `IOS_GOOGLE_SERVICE_PLIST_PATH` | ❌ | GoogleService-Info.plist for Crashlytics |
 | `IOS_USE_TRANSPORTER` | ❌ | Enable Transporter (default: `true`) |
 | `IOS_TRANSPORTER_PATH` | ❌ | Transporter path (default: `/Applications/Transporter.app/Contents/itms`) |
+
+### Huawei Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `HUAWEI_CLIENT_ID` | ✅ | Client ID from Huawei Connect |
+| `HUAWEI_CLIENT_SECRET` | ✅ | Client Secret from Huawei Connect |
+| `HUAWEI_APP_ID` | ✅ | App ID from Huawei Connect |
 
 ### Android Variables
 
@@ -78,13 +87,9 @@ All ENV variables support flavor prefixes:
 
 ## Lanes
 
-### iOS
-- `dev` → Upload to TestFlight
-- `prod` → Upload to App Store (with review submission)
-
-### Android
-- `dev` → Upload to Play Store Beta track
-- `prod` → Upload to Play Store Production track
+### Mobile (iOS/Android/Huawei)
+- `dev` → Upload to Test/Beta track
+- `prod` → Upload to Production track
 
 ## Updating Submodule
 

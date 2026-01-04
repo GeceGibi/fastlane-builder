@@ -1,16 +1,18 @@
 #!/bin/bash
+# Sets up symbolic links for Fastlane configuration files in a Flutter project.
+# Only configures platforms that exist in the project root.
 set -e
 
 echo "🚀 Fastlane Builder Setup"
 echo "========================="
 
-# Check if we're in a Flutter project
+# Ensure script is run from Flutter project root
 if [ ! -f "pubspec.yaml" ]; then
   echo "❌ pubspec.yaml not found. Run this script from Flutter project root."
   exit 1
 fi
 
-# Check if submodule already exists
+# Initialize or update the fastlane-builder submodule
 if [ -d "fastlane-builder" ]; then
   echo "⚠️  fastlane-builder already exists. Updating..."
   git submodule update --remote fastlane-builder
@@ -19,23 +21,35 @@ else
   git submodule add https://github.com/GeceGibi/fastlane-builder.git
 fi
 
-# Create ios/fastlane directory if not exists
-echo "📁 Setting up iOS fastlane..."
-mkdir -p ios/fastlane
+# Creates symlinks for Fastfile and Appfile if the target directory exists
+setup_platform() {
+  local name=$1
+  local target_dir=$2
+  local source_dir=$3
+  
+  if [ -d "$target_dir" ]; then
+    echo "📁 Setting up $name fastlane..."
+    mkdir -p "$target_dir/fastlane"
+    rm -f "$target_dir/fastlane/Fastfile" "$target_dir/fastlane/Appfile"
+    ln -s "../../fastlane-builder/$source_dir/Fastfile" "$target_dir/fastlane/Fastfile"
+    ln -s "../../fastlane-builder/$source_dir/Appfile" "$target_dir/fastlane/Appfile"
+  else
+    echo "⏭️  Skipping $name (directory $target_dir not found)"
+  fi
+}
 
-# Remove old files and create symlinks for iOS
-rm -f ios/fastlane/Fastfile ios/fastlane/Appfile
-ln -s ../../fastlane-builder/ios/Fastfile ios/fastlane/Fastfile
-ln -s ../../fastlane-builder/ios/Appfile ios/fastlane/Appfile
+# Standard platforms (iOS and Android)
+setup_platform "iOS" "ios" "ios"
+setup_platform "Android" "android" "android"
 
-# Create android/fastlane directory if not exists
-echo "📁 Setting up Android fastlane..."
-mkdir -p android/fastlane
-
-# Remove old files and create symlinks for Android
-rm -f android/fastlane/Fastfile android/fastlane/Appfile
-ln -s ../../fastlane-builder/android/Fastfile android/fastlane/Fastfile
-ln -s ../../fastlane-builder/android/Appfile android/fastlane/Appfile
+# Huawei platform (uses shared android/ directory logic or dedicated huawei/ folder)
+if [ -d "android" ] || [ -d "huawei" ]; then
+    echo "📁 Setting up Huawei fastlane..."
+    mkdir -p "huawei/fastlane"
+    rm -f "huawei/fastlane/Fastfile" "huawei/fastlane/Appfile"
+    ln -s "../../fastlane-builder/huawei/Fastfile" "huawei/fastlane/Fastfile"
+    ln -s "../../fastlane-builder/huawei/Appfile" "huawei/fastlane/Appfile"
+fi
 
 echo ""
 echo "✅ Setup complete!"

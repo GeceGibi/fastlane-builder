@@ -1,0 +1,7 @@
+# Shared Huawei configuration
+# Uses ANDROID_PACKAGE_NAME as default package name
+
+package = ENV['ANDROID_PACKAGE_NAME']
+UI.user_error!("❌ HUAWEI package name (via ANDROID_PACKAGE_NAME) is required!") unless package
+
+package_name(package)

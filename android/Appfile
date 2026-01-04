@@ -1,11 +1,9 @@
-# Shared Android Appfile
-# ANDROID_PACKAGE_NAME: Required - complete package name from CI/CD
+# Shared Android configuration
+# ANDROID_PACKAGE_NAME: Complete package name from ENV
+# ANDROID_SERVICE_ACCOUNT_PATH: Path to Google Play service account JSON
 
 package = ENV['ANDROID_PACKAGE_NAME']
 UI.user_error!("❌ ANDROID_PACKAGE_NAME is required!") unless package
 
 package_name(package)
-
-# Google Play Console Service Account Key
 json_key_file(ENV['ANDROID_SERVICE_ACCOUNT_PATH'])
-

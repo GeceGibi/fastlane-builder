@@ -1,10 +1,10 @@
-# Shared Android Fastlane Configuration
-# Usage: fastlane android dev/prod
+# Shared Huawei Fastlane Configuration
+# Usage: fastlane huawei dev/prod
 
 default_platform(:android)
 
 # Fetches ENV variable with flavor prefix support
-# Example: FLAVOR=prod -> checks PROD_ANDROID_PACKAGE_NAME, then ANDROID_PACKAGE_NAME
+# Example: FLAVOR=dev -> checks DEV_HUAWEI_APP_ID, then HUAWEI_APP_ID
 def env_with_flavor(key)
   flavor = ENV['FLAVOR']
   if flavor && !flavor.empty?
@@ -31,7 +31,7 @@ def find_project_root
   nil
 end
 
-platform :android do
+platform :huawei do
 
   before_all do
     skip_docs
@@ -44,32 +44,32 @@ platform :android do
     UI.user_error!("❌ Could not find Flutter project root!") unless @project_root
   end
 
-  desc "Deploy to Play Store Production"
+  desc "Deploy to Huawei AppGallery Production"
   lane :prod do
-    deploy(track: "production")
+    deploy(submit_for_review: true)
   end
 
-  desc "Deploy to Play Store Beta"
+  desc "Upload to Huawei AppGallery Draft"
   lane :dev do
-    deploy(track: "beta")
+    deploy(submit_for_review: false)
   end
 
-  # Generic deploy logic using build artifact or manual build
-  desc "Execute Play Store upload"
+  # Generic deploy logic using build artifact
+  desc "Execute Huawei upload"
   lane :deploy do |options|
-    track = options[:track] || "beta"
+    submit_for_review = options[:submit_for_review] || false
 
     aab_file = find_latest_aab
     unless aab_file && File.exist?(aab_file)
       UI.user_error!("❌ AAB file not found! Run 'flutter build appbundle' first.")
     end
-    
-    upload_to_play_store(
-      aab: aab_file,
-      track: track,
-      metadata_path: env_with_flavor('ANDROID_METADATA_PATH') || "metadata",
-      skip_upload_metadata: true,
-      release_status: "completed"
+
+    huawei_appgallery_connect(
+      client_id: env_with_flavor("HUAWEI_CLIENT_ID"),
+      client_secret: env_with_flavor("HUAWEI_CLIENT_SECRET"),
+      app_id: env_with_flavor("HUAWEI_APP_ID"),
+      apk: aab_file,
+      submit_for_review: submit_for_review
     )
   end
 end
