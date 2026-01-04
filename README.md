@@ -1,23 +1,22 @@
 # Fastlane Builder
 
-Shared Fastlane configuration for multiple Flutter mobile projects.
+Shared Fastlane configuration for multiple Flutter mobile projects. Optimized for CI/CD with flavor support.
 
 ## Setup
 
-### 1. Add as Git Submodule
+### 1. Add as Git Submodule and Link
+
+Run this from your Flutter project root:
 
 ```bash
-# In your Flutter project root
+# Add the submodule
 git submodule add https://github.com/GeceGibi/fastlane-builder.git
 
-# Create symlinks
-ln -s ../../fastlane-builder/ios/Fastfile ios/fastlane/Fastfile
-ln -s ../../fastlane-builder/ios/Appfile ios/fastlane/Appfile
-ln -s ../../fastlane-builder/android/Fastfile android/fastlane/Fastfile
-ln -s ../../fastlane-builder/android/Appfile android/fastlane/Appfile
+# Run the setup script to automatically link active platforms
+./fastlane-builder/setup.sh
 ```
 
-### 2. Submodule Checkout in CI/CD
+### 2. CI/CD Configuration
 
 ```yaml
 # Azure DevOps
@@ -30,24 +29,13 @@ ln -s ../../fastlane-builder/android/Appfile android/fastlane/Appfile
     submodules: true
 ```
 
-## Usage
-
-```bash
-# iOS
-cd ios && fastlane dev --verbose
-cd ios && fastlane prod --verbose
-
-# Android
-cd android && fastlane dev --verbose
-cd android && fastlane prod --verbose
-```
-
 ## Environment Variables
 
 ### Flavor Prefix Support
 
-All ENV variables support flavor prefixes:
-- `{FLAVOR}_IOS_*` is checked first; if not found, `IOS_*` is used.
+Variables support automatic flavor lookup:
+- If `FLAVOR=prod`, it checks `PROD_IOS_BUNDLE_ID` first.
+- Fallback is `IOS_BUNDLE_ID`.
 
 ### iOS Variables
 
@@ -56,12 +44,19 @@ All ENV variables support flavor prefixes:
 | `IOS_BUNDLE_ID` | ✅ | App bundle identifier |
 | `IOS_AUTH_KEY_ID` | ✅ | App Store Connect API Key ID |
 | `IOS_ISSUER_ID` | ✅ | App Store Connect Issuer ID |
-| `IOS_AUTH_KEY_PATH` | ❌ | Path to .p8 auth key file (if content not provided) |
-| `IOS_AUTH_KEY_CONTENT` | ❌ | Raw content of .p8 auth key file |
-| `IOS_METADATA_PATH` | ❌ | Metadata folder path (default: `metadata`) |
-| `IOS_GOOGLE_SERVICE_PLIST_PATH` | ❌ | GoogleService-Info.plist for Crashlytics |
-| `IOS_USE_TRANSPORTER` | ❌ | Enable Transporter (default: `true`) |
-| `IOS_TRANSPORTER_PATH` | ❌ | Transporter path (default: `/Applications/Transporter.app/Contents/itms`) |
+| `IOS_AUTH_KEY_CONTENT` | ❌ | Raw content of .p8 auth key file (Preferred for CI) |
+| `IOS_AUTH_KEY_PATH` | ❌ | Path to .p8 auth key file (Fallback) |
+| `IOS_METADATA_PATH` | ❌ | Metadata path. Auto-detects `{path}/{platform}` subfolders. |
+| `IOS_GOOGLE_SERVICE_PLIST_PATH`| ❌ | GoogleService-Info.plist for Crashlytics dSYM upload |
+
+### Android Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `ANDROID_PACKAGE_NAME` | ✅ | App package name |
+| `ANDROID_SERVICE_ACCOUNT_JSON` | ❌ | Raw Service Account JSON content (Preferred for CI) |
+| `ANDROID_SERVICE_ACCOUNT_PATH` | ❌ | Path to service_account.json (Fallback) |
+| `ANDROID_METADATA_PATH` | ❌ | Metadata path. Auto-detects `{path}/{platform}` subfolders. |
 
 ### Huawei Variables
 
@@ -71,27 +66,12 @@ All ENV variables support flavor prefixes:
 | `HUAWEI_CLIENT_SECRET` | ✅ | Client Secret from Huawei Connect |
 | `HUAWEI_APP_ID` | ✅ | App ID from Huawei Connect |
 
-### Android Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `ANDROID_PACKAGE_NAME` | ✅ | App package name |
-| `ANDROID_SERVICE_ACCOUNT_PATH` | ✅ | Path to service_account.json |
-| `ANDROID_METADATA_PATH` | ❌ | Metadata folder path (default: `metadata`) |
-
-### Common Variables
-
-| Variable | Description |
-|----------|-------------|
-| `FLAVOR` | App flavor (enables prefix lookup) |
-
 ## Lanes
 
-### Mobile (iOS/Android/Huawei)
-- `dev` → Upload to Test/Beta track
+- `dev` → Upload to Test/Beta track (TestFlight / Play Store Beta / AppGallery Draft)
 - `prod` → Upload to Production track
 
-## Updating Submodule
+## Updating
 
 ```bash
 git submodule update --remote fastlane-builder
