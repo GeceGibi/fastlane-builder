@@ -17,7 +17,7 @@ ln -s ../../fastlane-builder/android/Fastfile android/fastlane/Fastfile
 ln -s ../../fastlane-builder/android/Appfile android/fastlane/Appfile
 ```
 
-### 2. CI/CD'de Submodule Checkout
+### 2. Submodule Checkout in CI/CD
 
 ```yaml
 # Azure DevOps
@@ -46,8 +46,8 @@ cd android && fastlane prod --verbose
 
 ### Flavor Prefix Support
 
-Tüm ENV değişkenleri flavor prefix destekler:
-- Önce `{FLAVOR}_IOS_*` kontrol edilir, yoksa `IOS_*` kullanılır
+All ENV variables support flavor prefixes:
+- `{FLAVOR}_IOS_*` is checked first; if not found, `IOS_*` is used.
 
 ### iOS Variables
 

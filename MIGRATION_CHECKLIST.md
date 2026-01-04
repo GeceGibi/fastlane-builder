@@ -1,49 +1,28 @@
 # Fastlane Builder Migration Checklist
 
-Her proje için yapılacaklar:
+To-do for each project:
 
-## Benim Görevlerim
+## My Tasks
 
-### 1. Submodule ve Symlink Kurulumu
+### 1. Submodule and Symlink Setup
 - [ ] `git submodule add https://github.com/GeceGibi/fastlane-builder.git`
-- [ ] Eski Fastfile/Appfile sil, symlink oluştur
+- [ ] Delete old Fastfile/Appfile, create symlinks
 
-### 2. Hardcoded Değerleri Bul
-- [ ] Mevcut `ios/fastlane/Fastfile` ve `android/fastlane/Fastfile` incele
-- [ ] Bundle ID, package name, credential path'leri not al
+### 2. Find Hardcoded Values
+- [ ] Inspect existing `ios/fastlane/Fastfile` and `android/fastlane/Fastfile`
+- [ ] Note Bundle ID, package name, and credential paths
 
-### 3. CI/CD Varsa
-- [ ] Pipeline dosyasına `submodules: true` ekle
-- [ ] ENV değişkenlerini pipeline'a ekle:
+### 3. If CI/CD Exists
+- [ ] Add `submodules: true` to the pipeline file
+- [ ] Add ENV variables to the pipeline:
   - `IOS_BUNDLE_ID`
   - `IOS_AUTH_KEY_ID`, `IOS_ISSUER_ID`, `IOS_AUTH_KEY_PATH`
   - `ANDROID_PACKAGE_NAME`, `ANDROID_SERVICE_ACCOUNT_PATH`
-  - `FLAVOR` (varsa)
+  - `FLAVOR` (if applicable)
 
-### 4. CI/CD Yoksa
-- [ ] `.env` dosyası oluştur (gitignore'da olmalı)
-- [ ] Gerekli değerleri `.env`'e yaz
+### 4. If CI/CD Does Not Exist
+- [ ] Create `.env` file (ensure it's in gitignore)
+- [ ] Add required values to `.env`
 
-### 5. Pipeline Kontrolü
-- [ ] Build script'lerinin doğru çalıştığını kontrol et
-
----
-
-## Projeler
-
-### com.secil.mobile ✅
-- [x] Submodule + Symlink
-- [x] Pipeline güncellendi  
-- [x] Test edildi (kullanıcı tarafından)
-
-### net.memurlar ✅
-- [x] Submodule + Symlink
-- [x] Hardcoded değerler (ENV'ye taşındı)
-- [x] CI/CD güncelleme (`submodules: true` + ENV mappings)
-- [ ] Kontrol (Pipeline tetiklenmeli)
-
-### [Proje 3]
-- [ ] Submodule + Symlink
-- [ ] Hardcoded değerler
-- [ ] CI/CD güncelleme
-- [ ] Kontrol
+### 5. Pipeline Verification
+- [ ] Verify build scripts work correctly
