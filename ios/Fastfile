@@ -73,6 +73,11 @@ platform :ios do
       log_info("Using raw key content from ENV")
       key_path = File.join(@project_root, "ios/fastlane/auth_key.p8")
       File.write(key_path, key_content)
+    elsif (base64_content = env_with_flavor('IOS_AUTH_KEY_BASE64_CONTENT')) && !base64_content.empty?
+      log_info("Using base64 key content from ENV")
+      require 'base64'
+      key_path = File.join(@project_root, "ios/fastlane/auth_key.p8")
+      File.write(key_path, Base64.decode64(base64_content))
     elsif key_path
        log_info("Using key file at: #{key_path}")
     end

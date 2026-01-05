@@ -94,6 +94,7 @@ The system automatically performs a prefix lookup based on the `FLAVOR` variable
 | `IOS_AUTH_KEY_ID` | ✅ | ASC API Key ID |
 | `IOS_ISSUER_ID` | ✅ | ASC Issuer ID |
 | `IOS_AUTH_KEY_CONTENT` | ❌ | Raw .p8 key content (Preferred for CI) |
+| `IOS_AUTH_KEY_BASE64_CONTENT` | ❌ | Base64 encoded .p8 key content |
 
 ### Android
 | Variable | Required | Description |
