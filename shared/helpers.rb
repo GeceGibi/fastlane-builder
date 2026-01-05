@@ -77,25 +77,22 @@ def ensure_metadata_dirs(platform_prefix, project_root)
     end
 
     unless File.exist?(file_path)
-      log_info("Creating default log for #{locale} at #{file_path}")
-      content = locale.start_with?('tr') ? "- Hata düzeltmeleri ve performans iyileştirmeleri." : "- Bug fixes and performance improvements."
-      File.write(file_path, content)
+      log_info("⚠️ Metadata file missing for #{locale} at #{file_path}. Skipping creation.")
     end
   end
 
-  # Cleanup unsupported directories
-  # Note: The cleanup logic assumes direct children are locales. 
-  # This works for iOS and Huawei. For Android, metadata/<locale>/... it also works.
-  if Dir.exist?(metadata_path)
-    existing_dirs = Dir.children(metadata_path).select { |d| File.directory?(File.join(metadata_path, d)) }
-    to_remove = existing_dirs - locales
-    to_remove.each do |dir_name|
-      next if dir_name.start_with?('.') # Skip hidden files
-      full_path = File.join(metadata_path, dir_name)
-      log_info("Removing unsupported locale directory: #{dir_name}")
-      FileUtils.rm_rf(full_path)
-    end
-  end
+  # Cleanup disabled by user request
+  # if Dir.exist?(metadata_path)
+  #   existing_dirs = Dir.children(metadata_path).select { |d| File.directory?(File.join(metadata_path, d)) }
+  #   to_remove = existing_dirs - locales
+  #   to_remove.each do |dir_name|
+  #     next if dir_name.start_with?('.') # Skip hidden files
+  #     next if dir_name == 'default' # Skip default directory, it's valid for Apple
+  #     full_path = File.join(metadata_path, dir_name)
+  #     log_info("Removing unsupported locale directory: #{dir_name}")
+  #     FileUtils.rm_rf(full_path)
+  #   end
+  # end
 end
 
 def dump_context(platform_name, specific_keys = [])
