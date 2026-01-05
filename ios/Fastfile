@@ -118,6 +118,7 @@ platform :ios do
         skip_screenshots: true,
         automatic_release: true,
         submit_for_review: true,
+        precheck_include_in_app_purchases: false,
         force: true
       )
     else
