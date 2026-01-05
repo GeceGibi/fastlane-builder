@@ -10,7 +10,6 @@ void main(List<String> args) async {
   }
 
   // Platform flags
-  final enableHuawei = args.contains('--huawei');
   final enableEnglish = args.contains('--en');
 
   final trBody = [
@@ -64,17 +63,6 @@ void main(List<String> args) async {
     contentMap,
     'changelogs/default.txt',
   );
-
-  // Huawei (Optional)
-  if (enableHuawei) {
-    await _process(
-      'Huawei',
-      'android/fastlane/metadata/huawei',
-      androidLocales,
-      contentMap,
-      'changelog.txt',
-    );
-  }
 
   print('\n✅ Done.');
 }

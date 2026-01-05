@@ -33,8 +33,8 @@ platform :android do
     UI.user_error!("❌ Could not find Flutter project root!") unless @project_root
     log_info("Project Root: #{@project_root}")
 
-    # Ensure metadata structure exists
-    ensure_metadata_dirs("ANDROID", @project_root)
+    # Metadata verification disabled by request
+    # ensure_metadata_dirs("ANDROID", @project_root)
   end
 
   desc "Deploy to Play Store Production"
@@ -60,9 +60,10 @@ platform :android do
       UI.user_error!("❌ AAB file not found! Run 'flutter build appbundle' first.")
     end
     
-    metadata_path = get_metadata_path('ANDROID', @project_root)
-    metadata_exists = Dir.exist?(metadata_path)
-    log_info("Metadata exists: #{metadata_exists}")
+    # Use standard path check logic
+    metadata_dir = File.join(@project_root, "android/fastlane/metadata")
+    has_metadata = Dir.exist?(metadata_dir) && !Dir.empty?(metadata_dir)
+    log_info("Metadata exists: #{has_metadata}")
 
     # Authenticate with Google Play
     json_key_path = env_with_flavor('ANDROID_SERVICE_ACCOUNT_PATH').to_s.strip
@@ -72,11 +73,10 @@ platform :android do
     params = {
       aab: aab_file,
       track: track,
-      metadata_path: metadata_exists ? metadata_path : nil,
-      skip_upload_metadata: !metadata_exists,
-      skip_upload_images: !metadata_exists,
-      skip_upload_screenshots: !metadata_exists,
-      skip_upload_changelogs: !metadata_exists,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_changelogs: !has_metadata,
       release_status: "completed"
     }
 

@@ -37,8 +37,8 @@ platform :ios do
     UI.user_error!("❌ Could not find Flutter project root!") unless @project_root
     log_info("Project Root: #{@project_root}")
 
-    # Ensure metadata structure exists
-    ensure_metadata_dirs("IOS", @project_root)
+    # Metadata verification disabled by request
+    # ensure_metadata_dirs("IOS", @project_root)
   end
 
   desc "Deploy to TestFlight"
@@ -101,9 +101,10 @@ platform :ios do
       ENV["FASTLANE_ITUNES_TRANSPORTER_PATH"] = env_with_flavor('IOS_TRANSPORTER_PATH') || "/Applications/Transporter.app/Contents/itms"
     end
 
-    metadata_path = get_metadata_path('IOS', @project_root)
-    metadata_exists = Dir.exist?(metadata_path)
-    log_info("Metadata exists: #{metadata_exists}")
+    # Use standard path check logic
+    metadata_dir = File.join(@project_root, "ios/fastlane/metadata")
+    has_metadata = Dir.exist?(metadata_dir) && !Dir.empty?(metadata_dir)
+    log_info("Metadata exists: #{has_metadata}")
     
     app_identifier = env_with_flavor("IOS_BUNDLE_ID")
     log_info("App Identifier: #{app_identifier}")
@@ -113,8 +114,7 @@ platform :ios do
       upload_to_app_store(
         app_identifier: app_identifier,
         ipa: ipa_file,
-        metadata_path: metadata_path,
-        skip_metadata: !metadata_exists,
+        skip_metadata: !has_metadata,
         skip_screenshots: true,
         automatic_release: true,
         submit_for_review: true,
