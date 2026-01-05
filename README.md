@@ -81,10 +81,7 @@ The system automatically performs a prefix lookup based on the `FLAVOR` variable
 ### Common
 | Variable | Required | Description |
 |----------|----------|-------------|
-| Variable | Required | Description |
-|----------|----------|-------------|
 | `FLAVOR` | ❌ | App flavor (e.g., dev, prod) |
-| `SUPPORTED_LOCALES` | ❌ | Comma separated locales (Default: `tr-TR`) |
 | `AUTO_GENERATE_CHANGELOG` | ❌ | Set 'true' to enable git commit logs in beta (Default: `false`) |
 
 ### iOS
@@ -110,21 +107,23 @@ The system automatically performs a prefix lookup based on the `FLAVOR` variable
 | `HUAWEI_CLIENT_ID` | ✅ | Huawei Client ID |
 | `HUAWEI_CLIENT_SECRET` | ✅ | Huawei Client Secret |
 
+### Metadata Structure 📂
 
-## Metadata Structure 📂
-
-The system automatically ensures the following structure exists and loads it during deploy:
+The system detects locales based on the directories you create manually in the metadata folder.
+You **must** create these directories yourself.
 
 ### iOS
 - Path: `ios/fastlane/metadata/<locale>/release_notes.txt`
+- Or: `ios/fastlane/metadata/default/release_notes.txt`
 
 ### Android
 - Path: `android/fastlane/metadata/android/<locale>/changelogs/default.txt`
+- Or: `android/fastlane/metadata/android/default/changelogs/default.txt`
 
 ### Huawei
 - Path: `android/fastlane/metadata/huawei/<locale>/changelog.txt`
 
-> **Automatic Creation:** Directories and default `changelog/release_notes` files are created automatically in `before_all`.
+> **Note:** The system will automatically detect any locale directory present (e.g., `en-US`, `tr-TR`, `default`) and trigger actions like changelog updates for them.
 
 ## Lanes
 
