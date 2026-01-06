@@ -40,21 +40,22 @@ platform :android do
 
   desc "Deploy to Play Store Production"
   lane :prod do
-    log_info("Starting PROD deployment (Production)...")
+    log_info("Starting PROD deployment...")
     deploy(track: "production")
   end
 
   desc "Deploy to Play Store Alpha"
   lane :dev do
-    log_info("Starting DEV deployment (Alpha)...")
+    track = env_with_flavor('ANDROID_DEV_DEPLOY_TRACK') || "alpha"
+    log_info("Starting DEV deployment... (#{track})")
     update_changelog_from_git("ANDROID", @project_root)
-    deploy(track: "alpha")
+    deploy(track: track)
   end
 
   # Generic deploy logic using build artifact or manual build
   desc "Execute Play Store upload"
   lane :deploy do |options|
-    track = options[:track] || env_with_flavor('ANDROID_DEPLOY_TRACK') || "alpha"
+    track = options[:track]
 
     aab_file = find_latest_aab(@project_root)
     unless aab_file && File.exist?(aab_file)

@@ -98,8 +98,9 @@ The system automatically performs a prefix lookup based on the `FLAVOR` variable
 |----------|----------|-------------|
 | `ANDROID_PACKAGE_NAME` | ✅ | App Package Name |
 | `ANDROID_SERVICE_ACCOUNT_JSON` | ✅ | Raw Service Account JSON content |
-| `ANDROID_DEPLOY_TRACK` | ❌ | Play Store track (Default: `alpha`) |
-| `ANDROID_METADATA_PATH` | ❌ | Custom metadata path (Default: `android/fastlane/metadata`) |
+| `ANDROID_DEV_DEPLOY_TRACK` | ❌ | Play Store track for **dev** lane (Default: `alpha`) |
+
+> **Note:** The `prod` lane is always hardcoded to the `production` track for safety. The `ANDROID_DEV_DEPLOY_TRACK` variable only affects the `dev` lane.
 
 ### Huawei
 | Variable | Required | Description |
