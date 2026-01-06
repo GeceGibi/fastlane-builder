@@ -101,7 +101,7 @@ def dump_context(platform_name, specific_keys = [])
 end
 
 def update_changelog_from_git(platform_prefix, project_root)
-  if env_with_flavor('AUTO_GENERATE_CHANGELOG') != 'true'
+  if env_with_flavor('AUTO_GENERATE_CHANGELOG').to_s.downcase != 'true'
     log_info("Skipping automatic changelog generation (AUTO_GENERATE_CHANGELOG is not 'true').")
     return
   end
