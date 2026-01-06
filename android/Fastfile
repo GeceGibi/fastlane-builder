@@ -7,7 +7,7 @@ def find_latest_aab(project_root)
   aab_files = Dir.glob(aab_pattern)
   latest = aab_files.max_by { |f| File.mtime(f) }
   log_info("Found AAB: #{latest}") if latest
-  latest
+  return latest
 end
 
 default_platform(:android)
@@ -21,7 +21,8 @@ platform :android do
     dump_context('Android', [
       'ANDROID_PACKAGE_NAME',
       'ANDROID_SERVICE_ACCOUNT_JSON',
-      'ANDROID_SERVICE_ACCOUNT_PATH'
+      'ANDROID_SERVICE_ACCOUNT_PATH',
+      'ANDROID_DEPLOY_TRACK'
     ])
 
     # Detect project root from CI or local path
@@ -53,7 +54,7 @@ platform :android do
   # Generic deploy logic using build artifact or manual build
   desc "Execute Play Store upload"
   lane :deploy do |options|
-    track = options[:track] || "alpha"
+    track = options[:track] || env_with_flavor('ANDROID_DEPLOY_TRACK') || "alpha"
 
     aab_file = find_latest_aab(@project_root)
     unless aab_file && File.exist?(aab_file)

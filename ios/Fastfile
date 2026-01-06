@@ -7,7 +7,7 @@ def find_latest_ipa(project_root)
   ipa_files = Dir.glob(ipa_pattern)
   latest = ipa_files.max_by { |f| File.mtime(f) }
   log_info("Found IPA: #{latest}") if latest
-  latest
+  return latest
 end
 
 default_platform(:ios)
@@ -86,7 +86,7 @@ platform :ios do
     issuer_id = env_with_flavor("IOS_ISSUER_ID")
     
     UI.message("   🔑 Key ID: #{api_key_id}")
-    UI.message("   🏛️  Issuer ID: #{issuer_id}")
+    UI.message("   🏛️ Issuer ID: #{issuer_id}")
 
     app_store_connect_api_key(
       key_id: api_key_id,

@@ -12,7 +12,7 @@ def env_with_flavor(key)
     value = ENV[flavor_key] if ENV[flavor_key] && !ENV[flavor_key].empty?
   end
   value = ENV[key] if value.nil?
-  value
+  return value
 end
 
 def find_project_root
@@ -21,7 +21,7 @@ def find_project_root
     return dir if File.exist?(File.join(dir, 'pubspec.yaml'))
     dir = File.dirname(dir)
   end
-  nil
+  return nil
 end
 
 def get_metadata_path(platform_prefix, project_root)
@@ -31,7 +31,7 @@ def get_metadata_path(platform_prefix, project_root)
   
   final_path = Dir.exist?(nested_path) ? nested_path : full_path
   log_info("Metadata Path resolved to: #{final_path}")
-  final_path
+  return final_path
 end
 
 def ensure_metadata_dirs(platform_prefix, project_root)
@@ -56,18 +56,11 @@ def dump_context(platform_name, specific_keys = [])
     'AUTO_GENERATE_CHANGELOG'
   ] + specific_keys
   
-  flavor = ENV['FLAVOR']
-  if flavor && !flavor.empty?
-    keys += keys.map { |k| "#{flavor.upcase}_#{k}" }
-  end
-
   keys.uniq.each do |key|
-    value = ENV[key]
+    value = env_with_flavor(key)
     if value && !value.empty?
       masked = (key.include?('SECRET') || key.include?('JSON') || key.include?('KEY') || key.include?('CONTENT')) && value.length > 20 ? "#{value[0..4]}...#{value[-4..-1]}" : value
       UI.message("   🔹 #{key}: #{masked}")
-    # else
-      # UI.message("   🔸 #{key}: [nil/empty]")
     end
   end
 
