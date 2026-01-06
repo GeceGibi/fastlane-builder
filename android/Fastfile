@@ -22,7 +22,7 @@ platform :android do
       'ANDROID_PACKAGE_NAME',
       'ANDROID_SERVICE_ACCOUNT_JSON',
       'ANDROID_SERVICE_ACCOUNT_PATH',
-      'ANDROID_DEPLOY_TRACK'
+      'ANDROID_DEV_DEPLOY_TRACK'
     ])
 
     # Detect project root from CI or local path
