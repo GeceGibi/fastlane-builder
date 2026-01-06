@@ -40,10 +40,6 @@ This is the most robust method as it ensures all shared helpers and files are ph
     import "../../fastlane-builder/android/Fastfile"
     ```
 
-    **Huawei (`android/fastlane/Fastfile` - if separate dir):**
-    ```ruby
-    import "../../fastlane-builder/huawei/Fastfile"
-    ```
 
 ## ⚙️ CI/CD Configuration
 
@@ -102,13 +98,6 @@ The system automatically performs a prefix lookup based on the `FLAVOR` variable
 
 > **Note:** The `prod` lane is always hardcoded to the `production` track for safety. The `ANDROID_DEV_DEPLOY_TRACK` variable only affects the `dev` lane.
 
-### Huawei
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `HUAWEI_APP_ID` | ✅ | Huawei App ID |
-| `HUAWEI_CLIENT_ID` | ✅ | Huawei Client ID |
-| `HUAWEI_CLIENT_SECRET` | ✅ | Huawei Client Secret |
-
 ### Metadata Structure 📂
 
 The system detects locales based on the directories you create manually in the metadata folder.
@@ -122,14 +111,11 @@ You **must** create these directories yourself.
 - Path: `android/fastlane/metadata/android/<locale>/changelogs/default.txt`
 - Or: `android/fastlane/metadata/android/default/changelogs/default.txt`
 
-### Huawei
-- Path: `android/fastlane/metadata/huawei/<locale>/changelog.txt`
-
 > **Note:** The system will automatically detect any locale directory present (e.g., `en-US`, `tr-TR`, `default`) and trigger actions like changelog updates for them.
 
 ## Lanes
 
-- `fastlane dev`: Deploy to Test/Beta tracks (TestFlight, Play Store Beta, Huawei AppGallery Draft).
+- `fastlane dev`: Deploy to Test/Beta tracks (TestFlight, Play Store Beta).
 - `fastlane prod`: Deploy to Production tracks.
 
 ## Update Strategy 🔄
