@@ -108,8 +108,8 @@ def update_changelog_from_git(platform_prefix, project_root)
 
   log_info("Updating changelog from Git history (Last 10 commits)...")
   
-  # Get last 10 commits: "- Commit message (Author)"
-  changelog_text = `git log -10 --pretty=format:"- %s (%an)"`
+  # Get last 10 non-merge commits: "- Commit message (Author)"
+  changelog_text = `git log -10 --no-merges --pretty=format:"- %s (%an)"`
   
   if changelog_text.empty?
     log_info("⚠️ No git commits found to generate changelog.")
