@@ -130,12 +130,16 @@ def update_changelog_from_git(platform_prefix, project_root)
       end
       
       if file_path && File.exist?(file_path)
-        # Append timestamp header
-        header = "Build Logs (#{Time.now.strftime('%Y-%m-%d %H:%M')}):"
-        new_content = "#{header}\n#{changelog_text}"
+        git_logs = `git log -5 --no-merges --pretty=format:"- %s"`.strip
         
-        File.write(file_path, new_content)
-        log_info("Updated #{locale} changelog: \n#{new_content}")
+        default_msg = "Improvements and bug fixes."
+        content = git_logs.empty? ? default_msg : git_logs
+        
+        # Max 500 chars constraint
+        final_content = content.length > 490 ? content[0...490] + "..." : content
+        
+        File.write(file_path, final_content)
+        log_info("Updated #{locale} changelog (Size: #{final_content.length})")
       end
     end
   else
