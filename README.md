@@ -6,7 +6,7 @@ Centralized, standalone, and portable Fastlane configuration for Flutter project
 - **Modular**: Common logic centralized in `shared/helpers.rb`, reducing duplication across flavors.
 - **Dynamic Root Detection**: Automatically identifies Flutter project root via `pubspec.yaml`.
 - **Flavor Support**: Dynamic environment variable lookup based on `FLAVOR` (e.g., `PROD_IOS_BUNDLE_ID` vs `IOS_BUNDLE_ID`).
-- **Metadata Automation**: Automatically ensures standard Fastlane metadata structure exists for all platforms.
+- **Metadata Detection**: Automatically detects localized metadata folders to trigger changelog updates and other platform-specific tasks.
 - **Auto-Update**: Automatically checks for Fastlane and plugin updates on every run.
 
 ## 🚀 Usage
@@ -50,8 +50,12 @@ When using submodules, you **must** configure your pipeline to checkout submodul
 steps:
 - checkout: self
   submodules: true  # Critical!
-  persistCredentials: true
+  persistCredentials: true # Required for git-based logic
 ```
+> **⚠️ Permission Note:** To avoid permission issues in Azure DevOps:
+> 1. **Job Scope:** Go to **Project Settings** > **Pipelines** > **Settings**. Disable **"Limit job authorization scope to current project"**.
+> 2. **Git Permissions:** Go to **Project Settings** > **Repositories** > Your Repo > **Security**.
+> 3. Find `Project Collection Build Service ([YourOrg])` and set **Contribute**, **Create Tag**, and **Read** permissions to **Allow**.
 
 ### GitHub Actions (`.github/workflows/deploy.yml`)
 ```yaml
@@ -67,8 +71,8 @@ steps:
 1. **Fastfile Config**: Follow the "Usage > Git Submodule" instructions to setup the bridge Fastfiles.
 2. **Appfile**: If you have `Appfile`s, delete them. All configuration is now ENV-based.
 3. **Environment**: Ensure your `.env` or CI variables match the ones listed below.
-4. **Metadata**: The build process will now auto-generate metadata folders based on `SUPPORTED_LOCALES`.
-4. **Verification**: Run `fastlane dev` to verify the remote configuration is fetched and working correctly.
+4. **Metadata**: Ensure your localized metadata directories exist (see [Metadata Structure](#metadata-structure-) below).
+5. **Verification**: Run `fastlane dev` to verify the remote configuration is fetched and working correctly.
 
 ## Environment Variables
 
